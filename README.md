@@ -25,7 +25,7 @@ O objetivo central deste sistema é gerenciar o controle de acesso e a validaç�
 
 Para detalhes sobre a arquitetura do sistema, padrões de código e a especificação completa de commits utilizada pela equipe, consulte o nosso documento oficial:
 
-👉 **[Acesse aqui: docs/TECHNICAL\_DECISIONS.md](/docs/TECHNICAL_DECISIONS.md)**
+👉 **[Acesse aqui: docs/TECHNICAL\_DECISIONS.md](./docs/TECHNICAL_DECISIONS.md)**
 
 -----
 
@@ -34,4 +34,3 @@ Para detalhes sobre a arquitetura do sistema, padrões de código e a especifica
 O planejamento das sprints e o status das funcionalidades (Requisitos Funcionais e Não Funcionais) podem ser acompanhados através do nosso quadro operacional no Trello.
 
 🔗 **[Quadro do Projeto no Trello](https://projeto-controle-de-acesso.atlassian.net/jira/software/projects/PCDA/boards/2?atlOrigin=eyJpIjoiYzU5MWU3YzU0NzkyNDUyMDk0YjNkMWVkNDBhYmQyMWMiLCJwIjoiaiJ9)**
-👉 **[Acesse aqui: docs/TECHNICAL\_DECISIONS.md](./docs/TECHNICAL_DECISIONS.md)**
