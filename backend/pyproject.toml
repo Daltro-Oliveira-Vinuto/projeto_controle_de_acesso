@@ -13,6 +13,7 @@ djangorestframework = "^3.17.1"
 psycopg = {extras = ["binary"], version = "^3.3.3"}
 django-environ = "^0.13.0"
 django-allauth = "^65.15.1"
+django-cors-headers = "^4.9.0"
 
 [tool.poetry.group.dev.dependencies]
 
