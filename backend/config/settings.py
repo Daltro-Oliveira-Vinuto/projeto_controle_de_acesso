@@ -28,6 +28,8 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'accounts.User';
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -58,6 +60,13 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'api',
+    'core',
+    'accounts',
+    'students',
+    'biometrics',
+    'meals',
+    'reports',
+    
     
 ]
 
