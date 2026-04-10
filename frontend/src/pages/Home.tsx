@@ -10,7 +10,13 @@ export default function Home() {
 
     return (
         <div>
+
             <h1> Bem-Vindo ao Control de acesso </h1>
+
+            <h1 className="text-3xl font-bold text-blue-500">
+                Tailwind funcionando 🚀
+            </h1>
+
             <h1>Users</h1>
 
             {users.map((user) => (
