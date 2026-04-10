@@ -90,8 +90,8 @@ DATABASE_URL=postgres://usuario:senha@localhost:5432/nome_do_banco
 
 | Sprint | Foco | Status |
 |---|---|---|
-| 1 | Configuração do ambiente e versionamento | 🔧 Em andamento |
-| 2 | Autenticação e controle de papéis com Google OAuth | ⏳ Aguardando |
+| 1 | Configuração do ambiente e versionamento |  DONE |
+| 2 | Autenticação e controle de papéis com Google OAuth | 🔧 Em andamento |
 | 3 | Gestão de estudantes — cadastro individual | ⏳ Aguardando |
 | 4 | Gestão de estudantes — cadastro em lote e digitais | ⏳ Aguardando |
 | 5 | Integração com leitor biométrico | ⏳ Aguardando |
