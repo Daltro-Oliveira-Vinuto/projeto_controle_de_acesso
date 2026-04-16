@@ -67,9 +67,8 @@ Disponível localmente em **http://localhost:5173**
 cd backend
 pip install poetry   # caso ainda não tenha
 poetry install
-poetry shell
-python manage.py migrate
-python manage.py runserver
+poetry run python3 manage.py migrate
+poetry run python3 manage.py runserver
 ```
 
 Disponível localmente em **http://localhost:8000**
@@ -77,9 +76,12 @@ Disponível localmente em **http://localhost:8000**
 Crie um arquivo `.env` dentro de `backend/`:
 
 ```env
-DEBUG=True
-SECRET_KEY=sua-chave-secreta-aqui
-DATABASE_URL=postgres://usuario:senha@localhost:5432/nome_do_banco
+DEBUG=True para rodar localmente e False para Deploy na Cloud
+NAME=nome do banco de dados
+USER=nome do usuário
+PASSWORD= senha do banco de dados
+HOST= caminho do banco de dados
+PORT= porta do banco de dados
 ```
 
 > Para produção no Render, a variável `DATABASE_URL` é gerada automaticamente ao vincular o serviço de banco de dados PostgreSQL no painel do Render.
