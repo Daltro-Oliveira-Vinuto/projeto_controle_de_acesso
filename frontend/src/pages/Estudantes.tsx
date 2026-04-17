@@ -1,167 +1,210 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 interface Estudante {
     id: number;
     nome: string;
     matricula: string;
-    foto?: string;
     foto_url?: string;
     ativo?: boolean;
 }
 
 export default function Estudantes() {
-    const navigate = useNavigate();
-
     const [dados, setDados] = useState<Estudante[]>([]);
+
     const [nome, setNome] = useState('');
     const [matricula, setMatricula] = useState('');
     const [foto, setFoto] = useState<File | null>(null);
 
-    const [preview, setPreview] = useState<string | null>(null);
     const [busca, setBusca] = useState('');
-    const [mostrarAtivos, setMostrarAtivos] = useState(true);
+    const [filtroAtivo, setFiltroAtivo] = useState('');
+
+    const [editandoId, setEditandoId] = useState<number | null>(null);
 
     async function carregar() {
-        const res = await api.get('estudantes/');
+        const res = await api.get('estudantes/', {
+            params: {
+                busca: busca || undefined,
+                ativo: filtroAtivo || undefined,
+            }
+        });
         setDados(res.data);
     }
 
-    async function criar(e: React.FormEvent) {
+    async function salvar(e: React.FormEvent) {
         e.preventDefault();
 
-        const formData = new FormData();
-        formData.append('nome', nome);
-        formData.append('matricula', matricula);
-        if (foto) formData.append('foto', foto);
+        try {
+            if (editandoId) {
+                // 🔥 EDIÇÃO (SEM FORM DATA se não tiver foto)
+                const data: any = {
+                    nome,
+                    matricula,
+                };
 
-        await api.post('estudantes/', formData);
+                if (foto) {
+                    const formData = new FormData();
+                    formData.append('nome', nome);
+                    formData.append('matricula', matricula);
+                    formData.append('foto', foto);
 
-        setNome('');
-        setMatricula('');
-        setFoto(null);
-        setPreview(null);
+                    await api.patch(`estudantes/${editandoId}/`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                    });
+                } else {
+                    await api.patch(`estudantes/${editandoId}/`, data);
+                }
 
-        carregar();
+            } else {
+                // 🔥 CRIAÇÃO (sempre formData)
+                const formData = new FormData();
+                formData.append('nome', nome);
+                formData.append('matricula', matricula);
+                if (foto) formData.append('foto', foto);
+
+                await api.post('estudantes/', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+            }
+
+            resetForm();
+            carregar();
+
+        } catch (err: any) {
+            console.log('ERRO BACKEND:', err.response?.data);
+            alert(JSON.stringify(err.response?.data));
+        }
+    }
+
+    function editar(e: Estudante) {
+        setEditandoId(e.id);
+        setNome(e.nome);
+        setMatricula(e.matricula);
     }
 
     async function desativar(id: number) {
-        await api.patch(`estudantes/${id}/`, { ativo: false });
+        await api.patch(`estudantes/${id}/`, {
+            ativo: false
+        });
         carregar();
+    }
+
+    function resetForm() {
+        setNome('');
+        setMatricula('');
+        setFoto(null);
+        setEditandoId(null);
     }
 
     useEffect(() => {
         carregar();
-    }, []);
+    }, [busca, filtroAtivo]);
 
     return (
         <div style={container}>
-            <h1 style={{ marginBottom: 20 }}>Gestão de Estudantes</h1>
 
-            {/* 🔎 BUSCA */}
-            <input
-                placeholder="Buscar por nome ou matrícula..."
-                value={busca}
-                onChange={e => setBusca(e.target.value)}
-                style={inputStyle}
-            />
+            <h1>Gestão de Estudantes</h1>
 
-            {/* 🎯 FILTRO */}
-            <button onClick={() => setMostrarAtivos(!mostrarAtivos)} style={filterButton}>
-                {mostrarAtivos ? 'Mostrar Inativos' : 'Mostrar Ativos'}
-            </button>
+            {/* 🔍 BUSCA + FILTRO */}
+            <div style={toolbar}>
+                <input
+                    placeholder="Buscar por nome ou matrícula"
+                    value={busca}
+                    onChange={e => setBusca(e.target.value)}
+                    style={input}
+                />
 
-            {/* 📋 FORM */}
+                <select
+                    value={filtroAtivo}
+                    onChange={e => setFiltroAtivo(e.target.value)}
+                    style={input}
+                >
+                    <option value="">Todos</option>
+                    <option value="true">Ativos</option>
+                    <option value="false">Inativos</option>
+                </select>
+            </div>
+
+            {/* FORM */}
             <div style={card}>
-                <h3>Cadastrar Estudante</h3>
+                <h3>{editandoId ? 'Editar Estudante' : 'Cadastrar Estudante'}</h3>
 
-                <form onSubmit={criar}>
+                <form onSubmit={salvar}>
                     <input
                         placeholder="Nome"
                         value={nome}
                         onChange={e => setNome(e.target.value)}
-                        style={inputStyle}
+                        style={input}
                     />
 
                     <input
                         placeholder="Matrícula"
                         value={matricula}
                         onChange={e => setMatricula(e.target.value)}
-                        style={inputStyle}
+                        style={input}
                     />
 
-                    <label style={fileStyle}>
+                    <label style={file}>
                         {foto ? foto.name : 'Selecionar foto'}
                         <input
                             type="file"
                             hidden
-                            onChange={e => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                    setFoto(file);
-                                    setPreview(URL.createObjectURL(file));
-                                }
-                            }}
+                            onChange={e => setFoto(e.target.files?.[0] || null)}
                         />
                     </label>
 
-                    {preview && (
-                        <img src={preview} style={previewStyle} />
-                    )}
-
-                    <button type="submit" style={buttonStyle}>
-                        Cadastrar
+                    <button style={btn}>
+                        {editandoId ? 'Salvar' : 'Cadastrar'}
                     </button>
+
+                    {editandoId && (
+                        <button
+                            type="button"
+                            onClick={resetForm}
+                            style={btnCancel}
+                        >
+                            Cancelar
+                        </button>
+                    )}
                 </form>
             </div>
 
-            {/* 📊 LISTA */}
+            {/* LISTA */}
             <div>
-                {dados
-                    .filter(e =>
-                        e.nome.toLowerCase().includes(busca.toLowerCase()) ||
-                        e.matricula.includes(busca)
-                    )
-                    .filter(e => mostrarAtivos ? e.ativo !== false : e.ativo === false)
-                    .map(e => (
-                        <div key={e.id} style={item}>
+                {dados.map(e => (
+                    <div key={e.id} style={item}>
+                        {e.foto_url ? (
+                            <img src={e.foto_url} style={img} />
+                        ) : (
+                            <div style={noImg}>Sem foto</div>
+                        )}
 
-                            <div
-                                style={{ cursor: 'pointer', display: 'flex', gap: 16 }}
-                                onClick={() => navigate(`/estudantes/${e.id}`)}
-                            >
-                                {e.foto_url ? (
-                                    <img src={e.foto_url} style={imgStyle} />
-                                ) : (
-                                    <div style={noImg}>Sem foto</div>
-                                )}
+                        <div style={{ flex: 1 }}>
+                            <strong>{e.nome}</strong><br />
+                            {e.matricula}<br />
+                            <span style={{
+                                color: e.ativo ? 'green' : 'red',
+                                fontSize: 12
+                            }}>
+                                {e.ativo ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </div>
 
-                                <div>
-                                    <strong>{e.nome}</strong><br />
-                                    {e.matricula}<br />
-                                    <span>{e.ativo ? '🟢 Ativo' : '🔴 Inativo'}</span>
-                                </div>
-                            </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <button onClick={() => editar(e)} style={btnSmall}>
+                                Editar
+                            </button>
 
-                            <div style={{ marginLeft: 'auto' }}>
-                                <button
-                                    onClick={() => navigate(`/estudantes/${e.id}?edit=true`)}
-                                    style={editButton}
-                                >
-                                    Editar
-                                </button>
-
-                                <button
-                                    onClick={() => desativar(e.id)}
-                                    style={deleteButton}
-                                >
+                            {e.ativo && (
+                                <button onClick={() => desativar(e.id)} style={btnDanger}>
                                     Desativar
                                 </button>
-                            </div>
+                            )}
                         </div>
-                    ))}
+                    </div>
+                ))}
             </div>
+
         </div>
     );
 }
@@ -171,34 +214,88 @@ export default function Estudantes() {
 const container = {
     padding: 30,
     background: '#f5f6fa',
-    minHeight: '100vh',
-    maxWidth: 900,
-    margin: '0 auto'
+    minHeight: '100vh'
+};
+
+const toolbar = {
+    display: 'flex',
+    gap: 12,
+    marginBottom: 20
 };
 
 const card = {
     background: '#fff',
     padding: 20,
     borderRadius: 10,
-    marginBottom: 20,
-    boxShadow: '0 5px 15px rgba(0,0,0,0.1)'
+    marginBottom: 20
 };
 
 const item = {
     display: 'flex',
     alignItems: 'center',
     gap: 16,
-    marginBottom: 12,
     padding: 12,
     background: '#fff',
-    borderRadius: 8
+    borderRadius: 8,
+    marginBottom: 10
 };
 
-const imgStyle = {
+const input = {
+    width: '100%',
+    padding: 10,
+    borderRadius: 6,
+    border: '1px solid #ddd'
+};
+
+const file = {
+    display: 'block',
+    padding: 10,
+    border: '1px dashed #aaa',
+    borderRadius: 6,
+    marginBottom: 10,
+    cursor: 'pointer'
+};
+
+const btn = {
+    width: '100%',
+    padding: 12,
+    background: '#1a1a2e',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer'
+};
+
+const btnCancel = {
+    marginTop: 10,
+    width: '100%',
+    padding: 10,
+    background: '#ccc',
+    border: 'none',
+    borderRadius: 6
+};
+
+const btnSmall = {
+    padding: '6px 10px',
+    background: '#2563eb',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6
+};
+
+const btnDanger = {
+    padding: '6px 10px',
+    background: '#dc2626',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 6
+};
+
+const img = {
     width: 80,
     height: 80,
-    borderRadius: 8,
-    objectFit: 'cover' as const
+    objectFit: 'cover' as const,
+    borderRadius: 8
 };
 
 const noImg = {
@@ -208,68 +305,6 @@ const noImg = {
     borderRadius: 8,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
-};
-
-const inputStyle = {
-    width: '100%',
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 6,
-    border: '1px solid #ccc'
-};
-
-const fileStyle = {
-    display: 'block',
-    padding: 10,
-    border: '1px dashed #aaa',
-    borderRadius: 6,
-    marginBottom: 10,
-    cursor: 'pointer'
-};
-
-const previewStyle = {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    objectFit: 'cover' as const,
-    marginBottom: 10
-};
-
-const buttonStyle = {
-    width: '100%',
-    padding: 10,
-    background: '#1a1a2e',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 6
-};
-
-const editButton = {
-    marginRight: 8,
-    padding: '6px 10px',
-    background: '#3498db',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 6,
-    cursor: 'pointer'
-};
-
-const deleteButton = {
-    padding: '6px 10px',
-    background: '#e74c3c',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 6,
-    cursor: 'pointer'
-};
-
-const filterButton = {
-    marginBottom: 20,
-    padding: '8px 12px',
-    background: '#2c3e50',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 6,
-    cursor: 'pointer'
+    justifyContent: 'center',
+    fontSize: 12
 };
