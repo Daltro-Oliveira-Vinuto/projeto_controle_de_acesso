@@ -93,8 +93,8 @@ PORT= porta do banco de dados
 | Sprint | Foco | Status |
 |---|---|---|
 | 1 | Configuração do ambiente e versionamento |  DONE |
-| 2 | Autenticação e controle de papéis com Google OAuth | 🔧 Em andamento |
-| 3 | Gestão de estudantes — cadastro individual | ⏳ Aguardando |
+| 2 | Autenticação e controle de papéis com Google OAuth | DONE |
+| 3 | Gestão de estudantes — cadastro individual | 🔧 Em andamento |
 | 4 | Gestão de estudantes — cadastro em lote e digitais | ⏳ Aguardando |
 | 5 | Integração com leitor biométrico | ⏳ Aguardando |
 | 6 | Regras de voucher e validação completa | ⏳ Aguardando |
