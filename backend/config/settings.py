@@ -141,3 +141,7 @@ GOOGLE_REDIRECT_URI = 'http://localhost:8000/api/auth/google/callback/'
 # Domínios de email permitidos para login com Google
 # Ajuste conforme os domínios reais da instituição
 GOOGLE_ALLOWED_DOMAINS = ['gmail.com', 'escola.gov.br', 'educacao.gov.br']
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

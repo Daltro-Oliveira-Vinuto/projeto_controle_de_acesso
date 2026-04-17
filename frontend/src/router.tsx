@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import AuthCallback from './pages/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
+import Estudantes from './pages/Estudantes';
 
 const router = createBrowserRouter([
     {
@@ -54,6 +55,16 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={['admin', 'gestor', 'fiscal', 'empresa']}>
                         <div>Relatórios</div>
+                    </ProtectedRoute>
+                ),
+            },
+
+            // Students
+            {
+                path: 'estudantes',
+                element: (
+                    <ProtectedRoute allowedRoles={['admin', 'gestor']}>
+                        <Estudantes />
                     </ProtectedRoute>
                 ),
             },

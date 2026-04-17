@@ -22,12 +22,14 @@ const MENU_BY_ROLE: Record<string, { label: string; path: string }[]> = {
         { label: 'Dashboard', path: '/dashboard' },
         { label: 'Relatórios', path: '/relatorios' },
         { label: 'Perfil', path: '/perfil' },
+        { label: 'Estudantes', path: '/estudantes' },
     ],
     admin: [
         { label: 'Dashboard', path: '/dashboard' },
         { label: 'Painel Admin', path: '/admin' },
         { label: 'Relatórios', path: '/relatorios' },
         { label: 'Perfil', path: '/perfil' },
+        { label: 'Estudantes', path: '/estudantes' },
     ],
 };
 
