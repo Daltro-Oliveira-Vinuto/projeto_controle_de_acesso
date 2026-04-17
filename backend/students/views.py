@@ -28,7 +28,10 @@ class EstudanteViewSet(ModelViewSet):
         if curso:
             queryset = queryset.filter(curso=curso)
 
-        if ativo:
-            queryset = queryset.filter(ativo=ativo == 'true')
+        if ativo is not None:
+            if ativo.lower() == 'true':
+                queryset = queryset.filter(ativo=True)
+            elif ativo.lower() == 'false':
+                queryset = queryset.filter(ativo=False)
 
         return queryset
