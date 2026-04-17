@@ -18,38 +18,17 @@ const router = createBrowserRouter([
             { index: true, element: <Home /> },
             { path: 'about', element: <About /> },
             { path: 'login', element: <Login /> },
-            { path: 'auth/callback', element: <AuthCallback /> }, // captura tokens do Google
+            { path: 'auth/callback', element: <AuthCallback /> },
 
-            // Rotas protegidas — qualquer usuário autenticado
+            // Protegidas — qualquer usuário autenticado
             {
                 path: 'dashboard',
                 element: (
                     <ProtectedRoute>
-                        <Home /> {/* troque pelo componente de dashboard real */}
+                        <Home />
                     </ProtectedRoute>
                 ),
             },
-
-            // Rota protegida — apenas admin
-            {
-                path: 'admin',
-                element: (
-                    <ProtectedRoute allowedRoles={['admin']}>
-                        <div>Painel Admin</div>
-                    </ProtectedRoute>
-                ),
-            },
-
-            // Rota protegida — admin e gestor
-            {
-                path: 'relatorios',
-                element: (
-                    <ProtectedRoute allowedRoles={['admin', 'gestor']}>
-                        <div>Relatórios</div>
-                    </ProtectedRoute>
-                ),
-            },
-
             {
                 path: 'perfil',
                 element: (
@@ -59,7 +38,27 @@ const router = createBrowserRouter([
                 ),
             },
 
-            { path: 'unauthorized', element: <div>Acesso não autorizado.</div> },
+            // Protegida — apenas admin
+            {
+                path: 'admin',
+                element: (
+                    <ProtectedRoute allowedRoles={['admin']}>
+                        <div>Painel Admin</div>
+                    </ProtectedRoute>
+                ),
+            },
+
+            // Relatórios — admin, gestor, fiscal e empresa podem acessar
+            {
+                path: 'relatorios',
+                element: (
+                    <ProtectedRoute allowedRoles={['admin', 'gestor', 'fiscal', 'empresa']}>
+                        <div>Relatórios</div>
+                    </ProtectedRoute>
+                ),
+            },
+
+            { path: 'unauthorized', element: <div style={{ padding: 32 }}>Acesso não autorizado.</div> },
         ],
     },
 ]);
