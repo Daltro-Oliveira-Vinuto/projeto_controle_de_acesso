@@ -17,11 +17,9 @@ export default function Home() {
                 Tailwind funcionando 🚀
             </h1>
 
-            <h1>Users</h1>
 
-            {users.map((user) => (
-                <p key={user.id}>{user.username}</p>
-            ))}
+
+
         </div>
     );
 }

@@ -27,5 +27,8 @@ from rest_framework.decorators import api_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+
+    path('api/auth/', include('accounts.urls')),
+    
     
 ]

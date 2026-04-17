@@ -1,9 +1,26 @@
 # accounts/models.py
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
 
-class User(AbstractUser):
+class UserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('O email é obrigatório.')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('papel', 'admin')
+        return self.create_user(email, password, **extra_fields)
+
+
+class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = [
         ('operador', 'Operador'),
         ('empresa', 'Empresa'),
@@ -12,26 +29,19 @@ class User(AbstractUser):
         ('admin', 'Admin'),
     ]
 
-    # campos obrigatórios do AbstractUser que já existem:
-    # username, first_name, last_name, email, password, is_active, date_joined, last_login
-
-    username = None
     email = models.EmailField(unique=True)
-
-
-    nome = models.CharField(max_length=255, blank=True)  # nome de exibição
+    nome = models.CharField(max_length=255, blank=True)
     papel = models.CharField(max_length=20, choices=ROLE_CHOICES, default='operador')
     google_id = models.CharField(max_length=255, null=True, blank=True)
-    # senha é gerenciada pelo campo 'password' do AbstractUser (hash automático)
-    # is_active já existe no AbstractUser
-    # last_login (ultimo_acesso) já existe no AbstractUser
-
-    # Para fiscal: o email que o admin indicou
     email_indicado_admin = models.EmailField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(auto_now_add=True)
 
+    objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['nome']
 
     class Meta:
         verbose_name = 'Usuário'
