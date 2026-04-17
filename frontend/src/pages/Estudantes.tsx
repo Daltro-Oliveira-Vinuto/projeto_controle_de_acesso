@@ -6,7 +6,7 @@ interface Estudante {
     nome: string;
     matricula: string;
     foto?: string;
-    foto_url?: string; // 🔥 CORREÇÃO
+    foto_url?: string;
 }
 
 export default function Estudantes() {
@@ -15,12 +15,16 @@ export default function Estudantes() {
     const [matricula, setMatricula] = useState('');
     const [foto, setFoto] = useState<File | null>(null);
 
+    // 🔥 NOVO: controle de edição
+    const [editandoId, setEditandoId] = useState<number | null>(null);
+
     async function carregar() {
         const res = await api.get('estudantes/');
         setDados(res.data);
     }
 
-    async function criar(e: React.FormEvent) {
+    // 🔥 CREATE + UPDATE
+    async function salvar(e: React.FormEvent) {
         e.preventDefault();
 
         const formData = new FormData();
@@ -28,14 +32,32 @@ export default function Estudantes() {
         formData.append('matricula', matricula);
         if (foto) formData.append('foto', foto);
 
-        await api.post('estudantes/', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        if (editandoId) {
+            // 🔥 UPDATE
+            await api.patch(`estudantes/${editandoId}/`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+        } else {
+            // 🔥 CREATE
+            await api.post('estudantes/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+        }
 
+        // reset
         setNome('');
         setMatricula('');
         setFoto(null);
+        setEditandoId(null);
+
         carregar();
+    }
+
+    // 🔥 entra em modo edição
+    function editar(estudante: Estudante) {
+        setNome(estudante.nome);
+        setMatricula(estudante.matricula);
+        setEditandoId(estudante.id);
     }
 
     useEffect(() => {
@@ -50,18 +72,21 @@ export default function Estudantes() {
         }}>
             <h1 style={{ marginBottom: 20 }}>Gestão de Estudantes</h1>
 
-            {/* 🔥 FORM BONITO */}
+            {/* FORM */}
             <div style={{
                 background: '#fff',
                 padding: 24,
                 borderRadius: 10,
                 boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
                 marginBottom: 30,
-                maxWidth: '100%'
+                width: '100%',
+                maxWidth: 900
             }}>
-                <h3 style={{ marginBottom: 16 }}>Cadastrar Estudante</h3>
+                <h3 style={{ marginBottom: 16 }}>
+                    {editandoId ? 'Editar Estudante' : 'Cadastrar Estudante'}
+                </h3>
 
-                <form onSubmit={criar}>
+                <form onSubmit={salvar}>
                     <input
                         placeholder="Nome"
                         value={nome}
@@ -76,7 +101,6 @@ export default function Estudantes() {
                         style={inputStyle}
                     />
 
-                    {/* 🔥 INPUT FILE BONITO */}
                     <label style={fileStyle}>
                         {foto ? foto.name : 'Selecionar foto'}
                         <input
@@ -87,12 +111,28 @@ export default function Estudantes() {
                     </label>
 
                     <button type="submit" style={buttonStyle}>
-                        Cadastrar
+                        {editandoId ? 'Salvar alterações' : 'Cadastrar'}
                     </button>
+
+                    {/* 🔥 cancelar edição */}
+                    {editandoId && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditandoId(null);
+                                setNome('');
+                                setMatricula('');
+                                setFoto(null);
+                            }}
+                            style={cancelStyle}
+                        >
+                            Cancelar
+                        </button>
+                    )}
                 </form>
             </div>
 
-            {/* 🔥 LISTA MELHORADA */}
+            {/* LISTA */}
             <div>
                 {dados.map(e => (
                     <div
@@ -133,10 +173,18 @@ export default function Estudantes() {
                             </div>
                         )}
 
-                        <div>
-                            <strong style={{ fontSize: 16 }}>{e.nome}</strong><br />
+                        <div style={{ flex: 1 }}>
+                            <strong>{e.nome}</strong><br />
                             <span style={{ color: '#666' }}>{e.matricula}</span>
                         </div>
+
+                        {/* 🔥 BOTÃO EDITAR */}
+                        <button
+                            onClick={() => editar(e)}
+                            style={editButtonStyle}
+                        >
+                            Editar
+                        </button>
                     </div>
                 ))}
             </div>
@@ -152,7 +200,6 @@ const inputStyle = {
     marginBottom: 12,
     borderRadius: 6,
     border: '1px solid #ddd',
-    fontSize: 14
 };
 
 const buttonStyle = {
@@ -163,6 +210,21 @@ const buttonStyle = {
     border: 'none',
     borderRadius: 6,
     fontWeight: 600,
+    cursor: 'pointer'
+};
+
+const cancelStyle = {
+    marginTop: 10,
+    width: '100%',
+    padding: '10px',
+    background: '#ccc',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer'
+};
+
+const editButtonStyle = {
+    padding: '6px 10px',
     cursor: 'pointer'
 };
 
