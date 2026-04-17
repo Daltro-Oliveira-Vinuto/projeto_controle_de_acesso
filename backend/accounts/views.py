@@ -64,14 +64,8 @@ def register(request):
 def login_view(request):
     """
     Login com email e senha.
-    Usado por: operador, empresa, gestor.
-    Fiscais e admin usam o login via Google.
-
-    Body JSON:
-        email, password
-
-    Retorna:
-        user (dados), access (JWT), refresh (JWT)
+    Usado EXCLUSIVAMENTE por: operador, empresa, gestor.
+    Fiscal e admin são bloqueados aqui — eles usam obrigatoriamente o Google.
     """
     serializer = LoginSerializer(data=request.data)
     if not serializer.is_valid():
@@ -80,7 +74,23 @@ def login_view(request):
     email = serializer.validated_data['email']
     password = serializer.validated_data['password']
 
-    # authenticate() checa o hash da senha automaticamente
+    # Verifica o papel ANTES de checar a senha.
+    # Isso evita confirmar indiretamente que um email de admin/fiscal existe no sistema.
+    try:
+        usuario = User.objects.get(email=email)
+        if usuario.papel in ['fiscal', 'admin']:
+            return Response(
+                {
+                    'detail': 'Este acesso usa login com Google. '
+                              'Clique em "Entrar com Google" abaixo.',
+                    'redirect_google': True,   # flag para o frontend redirecionar automaticamente
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+    except User.DoesNotExist:
+        # Não revelamos se o email existe ou não — deixa o authenticate() falhar normalmente
+        pass
+
     user = authenticate(request, username=email, password=password)
 
     if user is None:
@@ -96,12 +106,10 @@ def login_view(request):
         )
 
     tokens = get_tokens_for_user(user)
-
     return Response({
         'user': UserSerializer(user).data,
         **tokens,
     })
-
 
 # ─────────────────────────────────────────────────────────────────
 # Dados do usuário logado
