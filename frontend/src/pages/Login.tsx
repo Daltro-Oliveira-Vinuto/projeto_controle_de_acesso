@@ -21,7 +21,16 @@ export default function Login() {
             login(res.data.user, res.data.access, res.data.refresh);
             navigate('/dashboard');
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Erro ao fazer login.');
+            const data = err.response?.data;
+
+            // Se o backend sinalizou que este usuário deve usar Google,
+            // redireciona automaticamente sem mostrar mensagem de erro feia
+            if (data?.redirect_google) {
+                window.location.href = 'http://localhost:8000/api/auth/google/';
+                return;
+            }
+
+            setError(data?.detail || 'Erro ao fazer login.');
         } finally {
             setLoading(false);
         }
