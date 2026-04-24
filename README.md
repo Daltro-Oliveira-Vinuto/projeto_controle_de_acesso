@@ -94,8 +94,8 @@ PORT= porta do banco de dados
 |---|---|---|
 | 1 | Configuração do ambiente e versionamento |  DONE |
 | 2 | Autenticação e controle de papéis com Google OAuth | DONE |
-| 3 | Gestão de estudantes — cadastro individual | 🔧 Em andamento |
-| 4 | Gestão de estudantes — cadastro em lote e digitais | ⏳ Aguardando |
+| 3 | Gestão de estudantes — cadastro individual | 🔧 DONE |
+| 4 | Gestão de estudantes — cadastro em lote e digitais | ⏳ working on it |
 | 5 | Integração com leitor biométrico | ⏳ Aguardando |
 | 6 | Regras de voucher e validação completa | ⏳ Aguardando |
 | 7 | Liberação manual com foto e motivo | ⏳ Aguardando |
