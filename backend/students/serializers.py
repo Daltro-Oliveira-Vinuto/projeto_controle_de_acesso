@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Estudante
+from .models import Estudante, Digital
 
 
 class EstudanteSerializer(serializers.ModelSerializer):
@@ -33,3 +33,9 @@ class EstudanteListSerializer(serializers.ModelSerializer):
         if obj.foto and request:
             return request.build_absolute_uri(obj.foto.url)
         return None
+
+class DigitalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Digital
+        fields = ['id', 'codigo_hex', 'dedo', 'created_at']
+        read_only_fields = ['created_at']
