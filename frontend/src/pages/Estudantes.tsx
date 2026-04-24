@@ -36,6 +36,7 @@ function ImageCropper({
     const [naturalSize, setNaturalSize] = useState({ w: 1, h: 1 });
     const [displaySize, setDisplaySize] = useState({ w: 400, h: 300 });
 
+
     useEffect(() => {
         const url = URL.createObjectURL(file);
         setImgSrc(url);
@@ -103,6 +104,8 @@ function ImageCropper({
         ctx.drawImage(img, x1 * scaleX, y1 * scaleY, w, h, 0, 0, w, h);
         canvas.toBlob(blob => { if (blob) onCropDone(blob); }, 'image/jpeg', 0.92);
     }
+
+
 
     // Calcular o retângulo de seleção para overlay
     const selX = Math.min(crop.startX, crop.endX);
@@ -193,6 +196,38 @@ export default function Estudantes() {
     const [filtroTurma, setFiltroTurma] = useState('');
     const [filtroAtivo, setFiltroAtivo] = useState('');   // '' = todos
 
+    // ── SPRINT 4 ──
+    const [pagina, setPagina] = useState(1);
+    const [totalPaginas, setTotalPaginas] = useState(1);
+    const [ordenacao, setOrdenacao] = useState('nome'); // ou '-nome'
+    const [modalImportar, setModalImportar] = useState(false);
+    const [arquivoCSV, setArquivoCSV] = useState<File | null>(null);
+    const [resultadoImportacao, setResultadoImportacao] = useState<any>(null);
+
+
+    async function importarCSV() {
+        if (!arquivoCSV) {
+            alert('Selecione um arquivo CSV');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('arquivo', arquivoCSV); // 🔥 bate com backend
+
+        try {
+            const res = await api.post('importar-estudantes/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setResultadoImportacao(res.data);
+            setArquivoCSV(null);
+            carregar();
+
+        } catch (err: any) {
+            console.error(err.response?.data);
+            alert(JSON.stringify(err.response?.data));
+        }
+    }
+
     // ── carregamento ──────────────────────────────────────────
     const carregar = useCallback(async () => {
         setLoading(true);
@@ -203,13 +238,25 @@ export default function Estudantes() {
                     curso: filtroCurso || undefined,
                     turma: filtroTurma || undefined,
                     ativo: filtroAtivo || undefined,
+                    page: pagina,
+                    ordering: ordenacao,
                 }
             });
-            setDados(res.data);
+
+            // se backend usa paginação DRF
+            setDados(res.data.results || res.data);
+
+            // calcula páginas manualmente
+            if (res.data.count) {
+                const pageSize = 10; // ou o PAGE_SIZE do backend
+                setTotalPaginas(Math.ceil(res.data.count / pageSize));
+            } else {
+                setTotalPaginas(1);
+            }
         } finally {
             setLoading(false);
         }
-    }, [busca, filtroCurso, filtroTurma, filtroAtivo]);
+    }, [busca, filtroCurso, filtroTurma, filtroAtivo, pagina, ordenacao]);
 
     async function carregarFiltros() {
         try {
@@ -233,6 +280,10 @@ export default function Estudantes() {
             return () => URL.revokeObjectURL(url);
         }
     }, [foto]);
+
+    useEffect(() => {
+        setPagina(1);
+    }, [busca, filtroCurso, filtroTurma, filtroAtivo, ordenacao]);
 
     // ── salvar (criar / editar) ───────────────────────────────
     async function salvar(e: React.FormEvent) {
@@ -387,9 +438,16 @@ export default function Estudantes() {
             {/* Cabeçalho */}
             <div style={cs.header}>
                 <h1 style={cs.titulo}>👥 Gestão de Estudantes</h1>
-                <button onClick={() => { resetForm(); setModalAberto(true); }} style={cs.btnPrimary}>
-                    + Novo Estudante
-                </button>
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                    <button onClick={() => setModalImportar(true)} style={cs.btnSuccess}>
+                        📥 Importar CSV
+                    </button>
+
+                    <button onClick={() => { resetForm(); setModalAberto(true); }} style={cs.btnPrimary}>
+                        + Novo Estudante
+                    </button>
+                </div>
             </div>
 
             {/* Filtros */}
@@ -412,6 +470,12 @@ export default function Estudantes() {
                     <option value="">Todos</option>
                     <option value="true">Ativos</option>
                     <option value="false">Inativos</option>
+                </select>
+                <select value={ordenacao} onChange={e => setOrdenacao(e.target.value)} style={cs.selectFiltro}>
+                    <option value="nome">Nome ↑</option>
+                    <option value="-nome">Nome ↓</option>
+                    <option value="matricula">Matrícula ↑</option>
+                    <option value="-matricula">Matrícula ↓</option>
                 </select>
             </div>
 
@@ -481,6 +545,29 @@ export default function Estudantes() {
                 </table>
             </div>
 
+            {/* Paginação */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 16 }}>
+                <button
+                    disabled={pagina === 1 || loading}
+                    onClick={() => setPagina(p => p - 1)}
+                    style={cs.btnSmall}
+                >
+                    ← Anterior
+                </button>
+
+                <span style={{ alignSelf: 'center', fontSize: 14 }}>
+                    Página {pagina} de {totalPaginas}
+                </span>
+
+                <button
+                    disabled={pagina === totalPaginas}
+                    onClick={() => setPagina(p => p + 1)}
+                    style={cs.btnSmall}
+                >
+                    Próxima →
+                </button>
+            </div>
+
             {/* ── Modal Cadastro/Edição ── */}
             {modalAberto && (
                 <div style={cs.overlay}>
@@ -547,6 +634,82 @@ export default function Estudantes() {
                                 </div>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+            {modalImportar && (
+                <div style={cs.overlay}>
+                    <div style={cs.modal}>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                            <h2>📥 Importar Estudantes (CSV)</h2>
+                            <button onClick={() => {
+                                setModalImportar(false);
+                                setResultadoImportacao(null);
+                            }} style={cs.closeBtn}>✕</button>
+                        </div>
+
+                        {/* Upload */}
+                        {!resultadoImportacao && (
+                            <>
+                                <input
+                                    type="file"
+                                    accept=".csv"
+                                    onChange={(e) => setArquivoCSV(e.target.files?.[0] || null)}
+                                />
+
+                                <p style={{ fontSize: 13, color: '#6b7280', marginTop: 8 }}>
+                                    Formato esperado: nome,matricula,curso,turma
+                                </p>
+
+                                <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                                    <button onClick={importarCSV} style={cs.btnPrimary}>
+                                        🚀 Enviar
+                                    </button>
+                                    <button onClick={() => setModalImportar(false)} style={cs.btnCancel}>
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Resultado */}
+                        {resultadoImportacao && (
+                            <div style={{ marginTop: 16 }}>
+                                <h3>Resultado da Importação</h3>
+
+                                <p>✅ Importados: {resultadoImportacao.importados}</p>
+                                <p>❌ Erros: {resultadoImportacao.erros_total}</p>
+
+                                {resultadoImportacao.erros.length > 0 && (
+                                    <div style={{
+                                        maxHeight: 200,
+                                        overflowY: 'auto',
+                                        background: '#fee2e2',
+                                        padding: 10,
+                                        borderRadius: 8,
+                                        marginTop: 10
+                                    }}>
+                                        {resultadoImportacao.erros.map((e: any, i: number) => (
+                                            <div key={i} style={{ fontSize: 13 }}>
+                                                Linha {e.linha}: {e.erro}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={() => {
+                                        setResultadoImportacao(null);
+                                        setModalImportar(false);
+                                    }}
+                                    style={{ ...cs.btnPrimary, marginTop: 16 }}
+                                >
+                                    Fechar
+                                </button>
+                            </div>
+                        )}
+
                     </div>
                 </div>
             )}
