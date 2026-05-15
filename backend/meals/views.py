@@ -1,9 +1,10 @@
+from django.utils import timezone
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.utils import timezone
 
-from students.models import Digital
+from students.models import Digital, Estudante
 from .models import Almoco
 
 
@@ -20,46 +21,36 @@ class VerificarDigitalView(APIView):
                 'erro': 'codigo_hex obrigatório'
             }, status=400)
 
-        # procura digital
         digital = Digital.objects.filter(
             codigo_hex=codigo
         ).select_related('estudante').first()
 
-        # DIGITAL NÃO CADASTRADA
         if not digital:
-
             return Response({
-                'status': 'bloqueado',
-                'motivo': 'Digital não cadastrada'
+                'status': 'nao_cadastrado'
             })
 
         estudante = digital.estudante
 
-        # ALUNO INATIVO
         if not estudante.ativo:
-
             return Response({
                 'status': 'bloqueado',
                 'motivo': 'Aluno inativo'
             })
 
-        # DATA DE HOJE
         hoje = timezone.localdate()
 
-        # VERIFICA SE JÁ ALMOÇOU
         ja_almocou = Almoco.objects.filter(
             estudante=estudante,
             data_hora__date=hoje
         ).exists()
 
         if ja_almocou:
-
             return Response({
                 'status': 'bloqueado',
                 'motivo': 'Já almoçou hoje'
             })
 
-        # REGISTRA ALMOÇO
         Almoco.objects.create(
             estudante=estudante,
             operador=request.user,
@@ -67,24 +58,77 @@ class VerificarDigitalView(APIView):
         )
 
         return Response({
-
             'status': 'liberado',
-
-            'mensagem': 'Voucher liberado',
-
+            'mensagem': 'LIBERADO',
             'estudante': {
-
                 'id': estudante.id,
                 'nome': estudante.nome,
                 'matricula': estudante.matricula,
                 'curso': estudante.curso,
                 'turma': estudante.turma,
-
                 'foto_url': (
-                    request.build_absolute_uri(
-                        estudante.foto.url
-                    )
+                    request.build_absolute_uri(estudante.foto.url)
                     if estudante.foto else None
                 )
             }
+        })
+
+
+class LiberarManualView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        estudante_id = request.data.get('estudante_id')
+        observacao = request.data.get('observacao', '').strip()
+
+        if not estudante_id:
+            return Response({
+                'erro': 'estudante_id obrigatório'
+            }, status=400)
+
+        if not observacao:
+            return Response({
+                'erro': 'Motivo obrigatório'
+            }, status=400)
+
+        try:
+            estudante = Estudante.objects.get(
+                id=estudante_id
+            )
+        except Estudante.DoesNotExist:
+            return Response({
+                'erro': 'Aluno não encontrado'
+            }, status=404)
+
+        if not estudante.ativo:
+            return Response({
+                'status': 'bloqueado',
+                'motivo': 'Aluno inativo'
+            })
+
+        hoje = timezone.localdate()
+
+        ja_almocou = Almoco.objects.filter(
+            estudante=estudante,
+            data_hora__date=hoje
+        ).exists()
+
+        if ja_almocou:
+            return Response({
+                'status': 'bloqueado',
+                'motivo': 'Já almoçou hoje'
+            })
+
+        Almoco.objects.create(
+            estudante=estudante,
+            operador=request.user,
+            metodo='manual',
+            observacao=observacao
+        )
+
+        return Response({
+            'status': 'liberado',
+            'mensagem': 'Liberação manual realizada'
         })

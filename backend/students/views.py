@@ -6,6 +6,9 @@ from django.db.models import Q
 
 from accounts.permissions import IsAdminOrGestor
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
 import csv
 import io
 from rest_framework import status
@@ -130,60 +133,34 @@ class ImportarEstudantesView(APIView):
             'erros':         erros,
         })
 
-"""
-class VerificarDigitalView(APIView):
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def buscar_estudantes(request):
 
-    permission_classes = [IsAuthenticated]
+    termo = request.GET.get('q', '').strip()
 
-    def post(self, request):
+    if not termo:
+        return Response([])
 
-        codigo_hex = request.data.get('codigo_hex')
+    estudantes = Estudante.objects.filter(
+        Q(nome__icontains=termo) |
+        Q(matricula__icontains=termo)
+    ).order_by('nome')[:10]
 
-        if not codigo_hex:
-            return Response(
-                {'erro': 'codigo_hex obrigatório'},
-                status=400
+    resultado = []
+
+    for estudante in estudantes:
+
+        resultado.append({
+            'id': estudante.id,
+            'nome': estudante.nome,
+            'matricula': estudante.matricula,
+            'turma': estudante.turma,
+            'curso': estudante.curso,
+            'foto_url': (
+                request.build_absolute_uri(estudante.foto.url)
+                if estudante.foto else None
             )
-
-        # "Conversão biométrica" simulada ==================================================
-        codigo_convertido = codigo_hex.upper().strip()
-
-        digitais = Digital.objects.all()
-
-        digital_encontrada = None
-
-        for digital in digitais:
-
-            banco_convertido = (
-                digital.codigo_hex.upper().strip()
-            )
-
-            if banco_convertido == codigo_convertido: # HEX do frontend == algum HEX do backend
-                digital_encontrada = digital
-                break
-
-        # NÃO ENCONTROU
-        if not digital_encontrada:
-            return Response({
-                'status': 'nao_cadastrado'
-            })
-
-        estudante = digital_encontrada.estudante
-
-        # REGISTRA ALMOÇO
-        Almoco.objects.create(
-            estudante=estudante,
-            operador=request.user,
-            metodo='biometria'
-        )
-
-        serializer = EstudanteSerializer(
-            estudante,
-            context={'request': request}
-        )
-
-        return Response({
-            'status': 'ok',
-            'estudante': serializer.data
         })
-"""
+
+    return Response(resultado)

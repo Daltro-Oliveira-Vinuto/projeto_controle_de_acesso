@@ -2,7 +2,12 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested import routers as nested_routers
 
-from .views import EstudanteViewSet, DigitalViewSet, ImportarEstudantesView # VerificarDigitalView
+from .views import (
+    EstudanteViewSet,
+    DigitalViewSet,
+    ImportarEstudantesView,
+    buscar_estudantes
+)
 
 # ─────────────────────────────────────────────────────────────
 # Router principal — cria:
@@ -39,5 +44,9 @@ urlpatterns = [
         ImportarEstudantesView.as_view(),
         name='importar-estudantes'
     ),
-
+    path(
+    'estudantes/busca/',
+    buscar_estudantes,
+    name='buscar-estudantes'
+),
 ]
