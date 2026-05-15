@@ -41,7 +41,12 @@ class EstudanteViewSet(ModelViewSet):
             Q(digitais__codigo_hex__icontains=termo)   # ✅ AQUI
         ).distinct()[:20]
 
-        serializer = EstudanteListSerializer(queryset, many=True)
+        serializer = EstudanteListSerializer(
+            queryset,
+            many=True,
+            context={'request': request}
+        )
+
         return Response(serializer.data)
 
     def get_serializer_class(self):

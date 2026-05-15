@@ -3,6 +3,14 @@
 import api from '../services/api'
 import { useEffect, useRef, useState } from 'react'
 
+const getFotoUrl = (url: string | null) => {
+    if (!url) return null;
+
+    if (url.startsWith('http')) return url;
+
+    return `http://localhost:8000${url}`;
+};
+
 type Estudante = {
     id: number
     nome: string
@@ -321,7 +329,7 @@ export default function Operador() {
                     {estudante.foto_url ? (
 
                         <img
-                            src={estudante.foto_url}
+                            src={getFotoUrl(estudante.foto_url)}
                             alt={estudante.nome}
                             className="
                                 w-48
@@ -538,7 +546,7 @@ export default function Operador() {
                                         {aluno.foto_url ? (
 
                                             <img
-                                                src={aluno.foto_url}
+                                                src={getFotoUrl(aluno.foto_url)}
                                                 className="
                                         w-16
                                         h-16
@@ -674,7 +682,7 @@ export default function Operador() {
                         {estudanteManual.foto_url ? (
 
                             <img
-                                src={estudanteManual.foto_url}
+                                src={getFotoUrl(estudanteManual.foto_url)}
                                 className="
                             w-40
                             h-40
