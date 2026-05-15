@@ -97,8 +97,8 @@ PORT= porta do banco de dados
 | 3 | Gestão de estudantes — cadastro individual |  DONE |
 | 4 | Gestão de estudantes — cadastro em lote e digitais | DONE |
 | 5 | Integração com leitor biométrico | DONE |
-| 6 | Regras de voucher e validação completa | 🔧 Working on it |
-| 7 | Liberação manual com foto e motivo | ⏳ Aguardando |
+| 6 | Regras de voucher e validação completa | DONE |
+| 7 | Liberação manual com foto e motivo | 🔧 Working on it |
 | 8 | Dashboard em tempo real para empresa | ⏳ Aguardando |
 | 9 | Dashboards para fiscal e gestão | ⏳ Aguardando |
 | 10 | Relatórios e exportação | ⏳ Aguardando |
