@@ -96,8 +96,8 @@ PORT= porta do banco de dados
 | 2 | Autenticação e controle de papéis com Google OAuth | DONE |
 | 3 | Gestão de estudantes — cadastro individual |  DONE |
 | 4 | Gestão de estudantes — cadastro em lote e digitais | DONE |
-| 5 | Integração com leitor biométrico | 🔧 Working on it |
-| 6 | Regras de voucher e validação completa | ⏳ Aguardando |
+| 5 | Integração com leitor biométrico | DONE |
+| 6 | Regras de voucher e validação completa | 🔧 Working on it |
 | 7 | Liberação manual com foto e motivo | ⏳ Aguardando |
 | 8 | Dashboard em tempo real para empresa | ⏳ Aguardando |
 | 9 | Dashboards para fiscal e gestão | ⏳ Aguardando |
