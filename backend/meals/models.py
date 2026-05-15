@@ -26,6 +26,12 @@ class Almoco(models.Model):
         choices=METODO_CHOICES
     )
 
+    observacao = models.TextField(
+        blank=True,
+        default=''
+    )
+
+
     data_hora = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
