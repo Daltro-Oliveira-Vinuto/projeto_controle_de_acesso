@@ -304,8 +304,14 @@ export default function Estudantes() {
     const carregarDigitais = async (estudanteId: number) => {
         try {
             setCarregandoDigitais(true);
+
             const response = await api.get(`/estudantes/${estudanteId}/digitais/`);
-            setDigitais(response.data);
+
+            setDigitais(
+                response.data.results || response.data
+            );
+
+
         } catch (err) {
             console.error('Erro:', err);
             alert('Erro ao carregar digitais');
@@ -336,7 +342,7 @@ export default function Estudantes() {
                     dedo: 'polegar_d'
                 }
             );
-            setDigitais([...digitais, response.data]);
+            setDigitais(prev => [...prev, response.data]);
             setNovaDigital('');
             alert('✅ Digital cadastrada com sucesso!');
         } catch (err: any) {
