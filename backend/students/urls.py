@@ -5,8 +5,8 @@ from rest_framework_nested import routers as nested_routers
 from .views import (
     EstudanteViewSet,
     DigitalViewSet,
-    ImportarEstudantesView,
-    buscar_estudantes
+    ImportarEstudantesView
+    
 )
 
 # ─────────────────────────────────────────────────────────────
@@ -44,9 +44,5 @@ urlpatterns = [
         ImportarEstudantesView.as_view(),
         name='importar-estudantes'
     ),
-    path(
-    'estudantes/busca/',
-    buscar_estudantes,
-    name='buscar-estudantes'
-),
+
 ]

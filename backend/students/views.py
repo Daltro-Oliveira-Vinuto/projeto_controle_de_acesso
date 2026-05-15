@@ -7,13 +7,13 @@ from django.db.models import Q
 from accounts.permissions import IsAdminOrGestor
 
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
 
 import csv
 import io
 from rest_framework import status
 from rest_framework.views import APIView
 from .models import Estudante, Digital
+
 from .serializers import EstudanteSerializer, EstudanteListSerializer, DigitalSerializer
 
 from meals.models import Almoco
@@ -21,7 +21,28 @@ from meals.models import Almoco
 
 class EstudanteViewSet(ModelViewSet):
     queryset = Estudante.objects.all().order_by('nome')
-    permission_classes = [IsAuthenticated, IsAdminOrGestor]
+    serializer_class = EstudanteSerializer
+
+    def get_permissions(self):
+        if self.action == 'busca':
+            return [IsAuthenticated()]
+        return [IsAuthenticated(), IsAdminOrGestor()]
+
+    @action(detail=False, methods=['get'], url_path='busca')
+    def busca(self, request):
+        termo = request.query_params.get('q', '').strip()
+
+        if not termo:
+            return Response([])
+
+        queryset = Estudante.objects.filter(
+            Q(nome__icontains=termo) |
+            Q(matricula__icontains=termo) |
+            Q(digitais__codigo_hex__icontains=termo)   # ✅ AQUI
+        ).distinct()[:20]
+
+        serializer = EstudanteListSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def get_serializer_class(self):
         # Na listagem usa o serializer enxuto; no detalhe/criação usa o completo
@@ -72,6 +93,9 @@ class EstudanteViewSet(ModelViewSet):
                   .values_list('turma', flat=True)
                   .exclude(turma='').distinct().order_by('turma'))
         return Response(list(turmas))
+
+
+
 
 class DigitalViewSet(ModelViewSet):
     serializer_class   = DigitalSerializer
@@ -133,34 +157,5 @@ class ImportarEstudantesView(APIView):
             'erros':         erros,
         })
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def buscar_estudantes(request):
 
-    termo = request.GET.get('q', '').strip()
 
-    if not termo:
-        return Response([])
-
-    estudantes = Estudante.objects.filter(
-        Q(nome__icontains=termo) |
-        Q(matricula__icontains=termo)
-    ).order_by('nome')[:10]
-
-    resultado = []
-
-    for estudante in estudantes:
-
-        resultado.append({
-            'id': estudante.id,
-            'nome': estudante.nome,
-            'matricula': estudante.matricula,
-            'turma': estudante.turma,
-            'curso': estudante.curso,
-            'foto_url': (
-                request.build_absolute_uri(estudante.foto.url)
-                if estudante.foto else None
-            )
-        })
-
-    return Response(resultado)
