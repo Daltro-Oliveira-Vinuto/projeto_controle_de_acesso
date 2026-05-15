@@ -13,6 +13,8 @@ from rest_framework.views import APIView
 from .models import Estudante, Digital
 from .serializers import EstudanteSerializer, EstudanteListSerializer, DigitalSerializer
 
+from meals.models import Almoco
+
 
 class EstudanteViewSet(ModelViewSet):
     queryset = Estudante.objects.all().order_by('nome')
@@ -126,4 +128,61 @@ class ImportarEstudantesView(APIView):
             'erros_total':   len(erros),
             'sucessos':      sucessos,
             'erros':         erros,
+        })
+
+
+class VerificarDigitalView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        codigo_hex = request.data.get('codigo_hex')
+
+        if not codigo_hex:
+            return Response(
+                {'erro': 'codigo_hex obrigatório'},
+                status=400
+            )
+
+        # "Conversão biométrica" simulada ==================================================
+        codigo_convertido = codigo_hex.upper().strip()
+
+        digitais = Digital.objects.all()
+
+        digital_encontrada = None
+
+        for digital in digitais:
+
+            banco_convertido = (
+                digital.codigo_hex.upper().strip()
+            )
+
+            if banco_convertido == codigo_convertido:
+                digital_encontrada = digital
+                break
+
+        # NÃO ENCONTROU
+        if not digital_encontrada:
+            return Response({
+                'status': 'nao_cadastrado'
+            })
+
+        estudante = digital_encontrada.estudante
+
+        # REGISTRA ALMOÇO
+        Almoco.objects.create(
+            estudante=estudante,
+            operador=request.user,
+            metodo='biometria'
+        )
+
+        serializer = EstudanteSerializer(
+            estudante,
+            context={'request': request}
+        )
+
+        return Response({
+            'status': 'ok',
+            'estudante': serializer.data
         })
