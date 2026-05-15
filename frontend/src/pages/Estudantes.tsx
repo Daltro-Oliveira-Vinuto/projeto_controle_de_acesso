@@ -11,6 +11,13 @@ interface Estudante {
     ativo: boolean;
 }
 
+interface Digital {
+    id: number;
+    codigo_hex: string;
+    dedo: string;
+    created_at: string;
+}
+
 // ─────────────────────────────────────────────────────────────
 // Componente de Crop de Foto
 // ─────────────────────────────────────────────────────────────
@@ -170,6 +177,8 @@ export default function Estudantes() {
     const [cursos, setCursos] = useState<string[]>([]);
     const [turmas, setTurmas] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
+    const [previewCSV, setPreviewCSV] = useState<any[]>([]);
+    const [errosCSV, setErrosCSV] = useState<string[]>([]);
 
     // Modal de cadastro/edição
     const [modalAberto, setModalAberto] = useState(false);
@@ -204,6 +213,66 @@ export default function Estudantes() {
     const [arquivoCSV, setArquivoCSV] = useState<File | null>(null);
     const [resultadoImportacao, setResultadoImportacao] = useState<any>(null);
 
+    // GESTÃO DE DIGITAIS
+    const [digitais, setDigitais] = useState<Digital[]>([]);
+    const [novaDigital, setNovaDigital] = useState('');
+    const [modalDigitais, setModalDigitais] = useState(false);
+    const [carregandoDigitais, setCarregandoDigitais] = useState(false);
+
+    async function analisarCSV(file: File) {
+        const texto = await file.text();
+
+        const linhas = texto.split('\n').filter(l => l.trim());
+
+        if (linhas.length < 2) {
+            setErrosCSV(['Arquivo CSV vazio']);
+            return;
+        }
+
+        const cabecalho = linhas[0]
+            .split(',')
+            .map(c => c.trim().toLowerCase());
+
+        const esperado = ['nome', 'matricula', 'curso', 'turma'];
+
+        const cabecalhoValido =
+            esperado.every((c, i) => cabecalho[i] === c);
+
+        if (!cabecalhoValido) {
+            setErrosCSV([
+                'Cabeçalho inválido.',
+                'Use: nome,matricula,curso,turma'
+            ]);
+            return;
+        }
+
+        const preview: any[] = [];
+        const erros: string[] = [];
+
+        for (let i = 1; i < linhas.length; i++) {
+            const partes = linhas[i].split(',');
+
+            const nome = partes[0]?.trim();
+            const matricula = partes[1]?.trim();
+            const curso = partes[2]?.trim();
+            const turma = partes[3]?.trim();
+
+            if (!nome || !matricula) {
+                erros.push(`Linha ${i + 1}: nome ou matrícula vazios`);
+                continue;
+            }
+
+            preview.push({
+                nome,
+                matricula,
+                curso,
+                turma
+            });
+        }
+
+        setPreviewCSV(preview);
+        setErrosCSV(erros);
+    }
 
     async function importarCSV() {
         if (!arquivoCSV) {
@@ -227,6 +296,79 @@ export default function Estudantes() {
             alert(JSON.stringify(err.response?.data));
         }
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // FUNÇÕES PARA GERENCIAR DIGITAIS
+    // ─────────────────────────────────────────────────────────────
+
+    const carregarDigitais = async (estudanteId: number) => {
+        try {
+            setCarregandoDigitais(true);
+            const response = await api.get(`/estudantes/${estudanteId}/digitais/`);
+            setDigitais(response.data);
+        } catch (err) {
+            console.error('Erro:', err);
+            alert('Erro ao carregar digitais');
+        } finally {
+            setCarregandoDigitais(false);
+        }
+    };
+
+    const adicionarDigital = async (estudanteId: number) => {
+        if (!novaDigital.trim()) {
+            alert('Digite um código hexadecimal');
+            return;
+        }
+        const hexRegex = /^[0-9A-Fa-f]+$/;
+        if (!hexRegex.test(novaDigital.trim())) {
+            alert('❌ Formato inválido.\n\nUse apenas números (0-9) e letras (A-F).');
+            return;
+        }
+        if (digitais.length >= 3) {
+            alert('⚠️ Limite de 3 digitais atingido');
+            return;
+        }
+        try {
+            const response = await api.post(
+                `/estudantes/${estudanteId}/digitais/`,
+                {
+                    codigo_hex: novaDigital.trim(),
+                    dedo: 'polegar_d'
+                }
+            );
+            setDigitais([...digitais, response.data]);
+            setNovaDigital('');
+            alert('✅ Digital cadastrada com sucesso!');
+        } catch (err: any) {
+            console.error('Erro:', err);
+            if (err.response?.status === 400) {
+                alert('❌ Erro: ' + (err.response.data.codigo_hex?.[0] || 'Dados inválidos'));
+            } else {
+                alert('❌ Erro: ' + err.message);
+            }
+        }
+    };
+
+    const removerDigital = async (digitalId: number) => {
+        if (!window.confirm('Tem certeza que deseja remover esta digital?')) {
+            return;
+        }
+
+        try {
+            await api.delete(
+                `/estudantes/${detalheId}/digitais/${digitalId}/`
+            );
+
+            setDigitais(
+                digitais.filter(d => d.id !== digitalId)
+            );
+
+            alert('✅ Digital removida com sucesso!');
+        } catch (err: any) {
+            console.error('Erro:', err);
+            alert('❌ Erro ao remover: ' + err.message);
+        }
+    };
 
     // ── carregamento ──────────────────────────────────────────
     const carregar = useCallback(async () => {
@@ -367,65 +509,310 @@ export default function Estudantes() {
 
     const estudanteDetalhe = dados.find(e => e.id === detalheId);
 
+
     // ════════════════════════════════════════════════════════════
     // TELA DE DETALHE
     // ════════════════════════════════════════════════════════════
     if (detalheId && estudanteDetalhe) {
         return (
-            <div style={cs.pageCenter}>
-                <div style={cs.detalheCard}>
-                    <button onClick={() => setDetalheId(null)} style={cs.btnBack}>← Voltar</button>
+            <>
+                <div style={cs.pageCenter}>
+                    <div style={cs.detalheCard}>
 
-                    {/* Foto centralizada */}
-                    <div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0 20px' }}>
-                        {estudanteDetalhe.foto_url
-                            ? <img src={estudanteDetalhe.foto_url} style={cs.fotoGrande} />
-                            : <div style={cs.semFotoGrande}>👤</div>}
-                    </div>
-
-                    <h2 style={{ textAlign: 'center', margin: '0 0 20px', color: '#111827', fontSize: 22 }}>
-                        {estudanteDetalhe.nome}
-                    </h2>
-
-                    <div style={cs.infoGrid}>
-                        <div style={cs.infoItem}>
-                            <span style={cs.infoLabel}>Matrícula</span>
-                            <span style={cs.infoValue}>{estudanteDetalhe.matricula}</span>
-                        </div>
-                        <div style={cs.infoItem}>
-                            <span style={cs.infoLabel}>Curso</span>
-                            <span style={cs.infoValue}>{estudanteDetalhe.curso || '—'}</span>
-                        </div>
-                        <div style={cs.infoItem}>
-                            <span style={cs.infoLabel}>Turma</span>
-                            <span style={cs.infoValue}>{estudanteDetalhe.turma || '—'}</span>
-                        </div>
-                        <div style={cs.infoItem}>
-                            <span style={cs.infoLabel}>Status</span>
-                            <span style={{
-                                ...cs.infoValue,
-                                color: estudanteDetalhe.ativo ? '#16a34a' : '#dc2626',
-                                fontWeight: 700,
-                            }}>
-                                {estudanteDetalhe.ativo ? '✅ Ativo' : '❌ Inativo'}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
-                        <button onClick={() => { setDetalheId(null); abrirEditar(estudanteDetalhe); }} style={{ ...cs.btnPrimary, flex: 1 }}>
-                            ✏️ Editar
+                        <button
+                            onClick={() => setDetalheId(null)}
+                            style={cs.btnBack}
+                        >
+                            ← Voltar
                         </button>
-                        {estudanteDetalhe.ativo
-                            ? <button onClick={() => desativar(estudanteDetalhe.id)} style={{ ...cs.btnDanger, flex: 1 }}>
-                                🔴 Desativar
+
+                        {/* Foto */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                margin: '24px 0 20px'
+                            }}
+                        >
+                            {estudanteDetalhe.foto_url ? (
+                                <img
+                                    src={estudanteDetalhe.foto_url}
+                                    style={cs.fotoGrande}
+                                />
+                            ) : (
+                                <div style={cs.semFotoGrande}>👤</div>
+                            )}
+                        </div>
+
+                        <h2
+                            style={{
+                                textAlign: 'center',
+                                margin: '0 0 20px',
+                                color: '#111827',
+                                fontSize: 22
+                            }}
+                        >
+                            {estudanteDetalhe.nome}
+                        </h2>
+
+                        <div style={cs.infoGrid}>
+
+                            <div style={cs.infoItem}>
+                                <span style={cs.infoLabel}>Matrícula</span>
+                                <span style={cs.infoValue}>
+                                    {estudanteDetalhe.matricula}
+                                </span>
+                            </div>
+
+                            <div style={cs.infoItem}>
+                                <span style={cs.infoLabel}>Curso</span>
+                                <span style={cs.infoValue}>
+                                    {estudanteDetalhe.curso || '—'}
+                                </span>
+                            </div>
+
+                            <div style={cs.infoItem}>
+                                <span style={cs.infoLabel}>Turma</span>
+                                <span style={cs.infoValue}>
+                                    {estudanteDetalhe.turma || '—'}
+                                </span>
+                            </div>
+
+                            <div style={cs.infoItem}>
+                                <span style={cs.infoLabel}>Status</span>
+
+                                <span
+                                    style={{
+                                        ...cs.infoValue,
+                                        color: estudanteDetalhe.ativo
+                                            ? '#16a34a'
+                                            : '#dc2626',
+                                        fontWeight: 700,
+                                    }}
+                                >
+                                    {estudanteDetalhe.ativo
+                                        ? '✅ Ativo'
+                                        : '❌ Inativo'}
+                                </span>
+                            </div>
+
+                        </div>
+
+                        {/* BOTÕES */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                gap: 10,
+                                marginTop: 24
+                            }}
+                        >
+
+                            <button
+                                onClick={() => {
+                                    setDetalheId(null);
+                                    abrirEditar(estudanteDetalhe);
+                                }}
+                                style={{
+                                    ...cs.btnPrimary,
+                                    flex: 1
+                                }}
+                            >
+                                ✏️ Editar
                             </button>
-                            : <button onClick={() => ativar(estudanteDetalhe.id)} style={{ ...cs.btnSuccess, flex: 1 }}>
-                                🟢 Reativar
-                            </button>}
+
+                            {estudanteDetalhe.ativo ? (
+                                <button
+                                    onClick={() =>
+                                        desativar(estudanteDetalhe.id)
+                                    }
+                                    style={{
+                                        ...cs.btnDanger,
+                                        flex: 1
+                                    }}
+                                >
+                                    🔴 Desativar
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() =>
+                                        ativar(estudanteDetalhe.id)
+                                    }
+                                    style={{
+                                        ...cs.btnSuccess,
+                                        flex: 1
+                                    }}
+                                >
+                                    🟢 Reativar
+                                </button>
+                            )}
+
+                            <button
+                                onClick={async () => {
+                                    setModalDigitais(true);
+                                    await carregarDigitais(estudanteDetalhe.id);
+                                }}
+                                style={{
+                                    ...cs.btnPrimary,
+                                    flex: 1
+                                }}
+                            >
+                                👆 Digitais
+                            </button>
+
+                        </div>
+
                     </div>
                 </div>
-            </div>
+
+                {/* MODAL DIGITAIS */}
+                {modalDigitais && (
+                    <div style={cs.overlay}>
+                        <div
+                            style={{
+                                ...cs.modal,
+                                maxWidth: 520,
+                                zIndex: 9999
+                            }}
+                        >
+
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: 20,
+                                    borderBottom: '2px solid #f3f4f6',
+                                    paddingBottom: 16
+                                }}
+                            >
+                                <h2
+                                    style={{
+                                        margin: 0,
+                                        fontSize: 22,
+                                        fontWeight: 700,
+                                        color: '#111827'
+                                    }}
+                                >
+                                    👆 Gerenciar Digitais
+                                </h2>
+
+                                <button
+                                    onClick={() => {
+                                        setModalDigitais(false);
+                                        setNovaDigital('');
+                                        setDigitais([]);
+                                    }}
+                                    style={cs.closeBtn}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {carregandoDigitais ? (
+                                <p>⏳ Carregando digitais...</p>
+                            ) : (
+                                <>
+                                    <div style={{ marginBottom: 20 }}>
+                                        <h3 style={{ color: '#111827' }}>
+                                            📋 Digitais ({digitais.length}/3)
+                                        </h3>
+
+                                        {digitais.length === 0 ? (
+                                            <p style={{ color: '#6b7280' }}>
+                                                Nenhuma digital cadastrada
+                                            </p>
+                                        ) : (
+                                            digitais.map((digital, idx) => (
+                                                <div
+                                                    key={digital.id}
+                                                    style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        padding: '12px 14px',
+                                                        background: '#f8fafc',
+                                                        borderRadius: 10,
+                                                        marginBottom: 8,
+                                                    }}
+                                                >
+                                                    <div style={{ fontSize: 13 }}>
+                                                        <strong>#{idx + 1}</strong>
+                                                        <br />
+                                                        <code>
+                                                            {digital.codigo_hex}
+                                                        </code>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() =>
+                                                            removerDigital(digital.id)
+                                                        }
+                                                        style={cs.btnSmallDanger}
+                                                    >
+                                                        🗑️ Remover
+                                                    </button>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                    {digitais.length < 3 && (
+                                        <>
+                                            <label style={cs.label}>
+                                                Nova Digital
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                value={novaDigital}
+                                                onChange={(e) =>
+                                                    setNovaDigital(e.target.value)
+                                                }
+                                                placeholder="ABC123DEF456..."
+                                                style={cs.input}
+                                            />
+
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    gap: 10,
+                                                    marginTop: 16
+                                                }}
+                                            >
+                                                <button
+                                                    onClick={() =>
+                                                        adicionarDigital(estudanteDetalhe.id)
+                                                    }
+                                                    style={{
+                                                        ...cs.btnSuccess,
+                                                        flex: 1
+                                                    }}
+                                                >
+                                                    ✅ Adicionar
+                                                </button>
+
+                                                <button
+                                                    onClick={() =>
+                                                        setModalDigitais(false)
+                                                    }
+                                                    style={{
+                                                        ...cs.btnCancel,
+                                                        flex: 1
+                                                    }}
+                                                >
+                                                    Fechar
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+
+                                </>
+                            )}
+
+                        </div>
+                    </div>
+                )}
+            </>
         );
     }
 
@@ -461,7 +848,7 @@ export default function Estudantes() {
                 <select value={filtroCurso} onChange={e => setFiltroCurso(e.target.value)} style={cs.selectFiltro}>
                     <option value="">Todos os cursos</option>
                     {cursos.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                </select>modalDigitais
                 <select value={filtroTurma} onChange={e => setFiltroTurma(e.target.value)} style={cs.selectFiltro}>
                     <option value="">Todas as turmas</option>
                     {turmas.map(t => <option key={t} value={t}>{t}</option>)}
@@ -642,7 +1029,9 @@ export default function Estudantes() {
                     <div style={cs.modal}>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                            <h2>📥 Importar Estudantes (CSV)</h2>
+                            <h2 style={{ color: '#111827', margin: 0 }}>
+                                📥 Importar Estudantes (CSV)
+                            </h2>
                             <button onClick={() => {
                                 setModalImportar(false);
                                 setResultadoImportacao(null);
@@ -652,15 +1041,111 @@ export default function Estudantes() {
                         {/* Upload */}
                         {!resultadoImportacao && (
                             <>
-                                <input
-                                    type="file"
-                                    accept=".csv"
-                                    onChange={(e) => setArquivoCSV(e.target.files?.[0] || null)}
-                                />
+                                <label style={cs.uploadLabel}>
+                                    📂 Selecionar CSV
+
+                                    <input
+                                        type="file"
+                                        accept=".csv"
+                                        hidden
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+
+                                            if (!file) return;
+
+                                            setArquivoCSV(file);
+
+                                            await analisarCSV(file);
+                                        }}
+                                    />
+                                </label>
+
+                                {arquivoCSV && (
+                                    <p style={{
+                                        marginTop: 10,
+                                        color: '#374151',
+                                        fontSize: 14
+                                    }}>
+                                        ✅ {arquivoCSV.name}
+                                    </p>
+                                )}
 
                                 <p style={{ fontSize: 13, color: '#6b7280', marginTop: 8 }}>
                                     Formato esperado: nome,matricula,curso,turma
                                 </p>
+
+                                {/* ERROS CSV */}
+                                {errosCSV.length > 0 && (
+                                    <div style={{
+                                        background: '#fee2e2',
+                                        padding: 12,
+                                        borderRadius: 8,
+                                        marginTop: 12,
+                                        maxHeight: 120,
+                                        overflowY: 'auto'
+                                    }}>
+                                        <strong style={{ color: '#991b1b' }}>
+                                            Erros encontrados:
+                                        </strong>
+
+                                        {errosCSV.map((erro, idx) => (
+                                            <div
+                                                key={idx}
+                                                style={{
+                                                    fontSize: 13,
+                                                    color: '#991b1b',
+                                                    marginTop: 4
+                                                }}
+                                            >
+                                                • {erro}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* PREVIEW CSV */}
+                                {previewCSV.length > 0 && (
+                                    <div style={{
+                                        marginTop: 16,
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: 8,
+                                        overflow: 'hidden'
+                                    }}>
+
+                                        <div style={{
+                                            background: '#f3f4f6',
+                                            padding: 10,
+                                            fontWeight: 600,
+                                            color: '#111827'
+                                        }}>
+                                            Pré-visualização ({previewCSV.length} linhas)
+                                        </div>
+
+                                        <div style={{
+                                            maxHeight: 220,
+                                            overflowY: 'auto'
+                                        }}>
+                                            {previewCSV.slice(0, 10).map((item, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    style={{
+                                                        padding: 10,
+                                                        borderBottom: '1px solid #f3f4f6',
+                                                        fontSize: 13
+                                                    }}
+                                                >
+                                                    <strong>{item.nome}</strong>
+                                                    <br />
+                                                    {item.matricula}
+                                                    <br />
+                                                    {item.curso}
+                                                    <br />
+                                                    {item.turma}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
                                     <button onClick={importarCSV} style={cs.btnPrimary}>
@@ -701,6 +1186,9 @@ export default function Estudantes() {
                                 <button
                                     onClick={() => {
                                         setResultadoImportacao(null);
+                                        setArquivoCSV(null);
+                                        setPreviewCSV([]);
+                                        setErrosCSV([]);
                                         setModalImportar(false);
                                     }}
                                     style={{ ...cs.btnPrimary, marginTop: 16 }}
@@ -710,10 +1198,17 @@ export default function Estudantes() {
                             </div>
                         )}
 
+
+
                     </div>
                 </div>
             )}
-        </div>
+
+
+
+
+
+        </div >
     );
 }
 
@@ -785,4 +1280,15 @@ const cs: Record<string, React.CSSProperties> = {
     btnSmall: { padding: '5px 12px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 },
     btnSmallDanger: { padding: '5px 12px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 },
     btnSmallSuccess: { padding: '5px 12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 },
+
+    uploadLabel: {
+        display: 'inline-block',
+        padding: '12px 18px',
+        background: '#2563eb',
+        color: '#fff',
+        borderRadius: 8,
+        cursor: 'pointer',
+        fontWeight: 600,
+        fontSize: 14,
+    },
 };
