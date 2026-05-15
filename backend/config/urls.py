@@ -34,7 +34,7 @@ urlpatterns = [
     # Estudantes (Sprint 3)
     path('api/', include('students.urls')),
 
-    path('api/meals/', include('meals.urls')),
+    path('api/', include('meals.urls')),
     
 ]
 

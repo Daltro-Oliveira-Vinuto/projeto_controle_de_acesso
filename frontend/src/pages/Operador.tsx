@@ -1,7 +1,7 @@
 // src/pages/Operador.tsx
 
-import { useEffect, useRef, useState } from 'react'
 import api from '../services/api'
+import { useEffect, useRef, useState } from 'react'
 
 type Estudante = {
     id: number
@@ -27,6 +27,9 @@ export default function Operador() {
 
     const [estudante, setEstudante] =
         useState<Estudante | null>(null)
+
+    const [contadorHoje, setContadorHoje] =
+        useState(0)
 
     // foco automático
     useEffect(() => {
@@ -73,12 +76,27 @@ export default function Operador() {
                 return
             }
 
+            if (response.data.status === 'bloqueado') {
+
+                setStatus('erro')
+
+                setMensagem(
+                    response.data.motivo
+                )
+
+                setEstudante(null)
+
+                return
+            }
+
             // SUCESSO
-            if (response.data.status === 'ok') {
+            if (response.data.status === 'liberado') {
+
+                setContadorHoje(prev => prev + 1)
 
                 setStatus('sucesso')
 
-                setMensagem('ALUNO RECONHECIDO')
+                setMensagem('LIBERADO')
 
                 setEstudante(
                     response.data.estudante
@@ -257,9 +275,58 @@ export default function Operador() {
 
             )}
 
+            <div
+                className="
+                    mt-8
+                    text-2xl
+                    font-bold
+                    text-black
+                "
+            >
+                Refeições liberadas hoje:
+                {' '}
+                {contadorHoje}
+            </div>
+
             {/* TEXTO AUXILIAR */}
-            <div className="mt-10 text-gray-500">
-                Campo biométrico aguardando leitura...
+            <div
+                className="
+        mt-10
+        flex
+        flex-col
+        items-center
+        gap-4
+    "
+            >
+
+                {/* TEXTO AUXILIAR */}
+                <div className="text-gray-500">
+                    Campo biométrico aguardando leitura...
+                </div>
+
+                {/* BOTÃO FALLBACK MANUAL */}
+                <button
+                    onClick={() => {
+                        alert(
+                            'Fallback manual será implementado na Sprint 7'
+                        )
+                    }}
+                    className="
+                bg-blue-600
+                hover:bg-blue-700
+                text-white
+                px-6
+                py-3
+                rounded-xl
+                text-lg
+                font-semibold
+                shadow-lg
+                transition-all
+            "
+                >
+                    Buscar Aluno
+                </button>
+
             </div>
 
         </div>

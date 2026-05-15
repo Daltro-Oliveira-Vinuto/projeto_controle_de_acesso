@@ -130,7 +130,7 @@ class ImportarEstudantesView(APIView):
             'erros':         erros,
         })
 
-
+"""
 class VerificarDigitalView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -186,3 +186,4 @@ class VerificarDigitalView(APIView):
             'status': 'ok',
             'estudante': serializer.data
         })
+"""
