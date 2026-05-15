@@ -14,7 +14,8 @@ environ.Env.read_env(BASE_DIR / '.env')
 # ── Segurança ─────────────────────────────────────────────────────
 SECRET_KEY = 'django-insecure-_b_@khbq%e@fdw^9)_!*z@8c1twutwb^!*o3^7(#-zvv$0%pv@'
 DEBUG = env.bool('DEBUG')
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 # ── Apps instalados ───────────────────────────────────────────────
 INSTALLED_APPS = [

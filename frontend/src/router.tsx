@@ -9,6 +9,7 @@ import Profile from './pages/Profile';
 import AuthCallback from './pages/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
 import Estudantes from './pages/Estudantes';
+import Operador from './pages/Operador';
 
 const router = createBrowserRouter([
     {
@@ -65,6 +66,16 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={['admin', 'gestor']}>
                         <Estudantes />
+                    </ProtectedRoute>
+                ),
+            },
+
+            // Operador
+            {
+                path: 'operador',
+                element: (
+                    <ProtectedRoute allowedRoles={['operador']}>
+                        <Operador />
                     </ProtectedRoute>
                 ),
             },

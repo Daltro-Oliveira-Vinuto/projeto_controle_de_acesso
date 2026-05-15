@@ -4,7 +4,6 @@ from accounts.models import User
 
 
 class Almoco(models.Model):
-
     METODO_CHOICES = [
         ('biometria', 'Biometria'),
         ('manual', 'Manual'),
@@ -24,8 +23,7 @@ class Almoco(models.Model):
 
     metodo = models.CharField(
         max_length=20,
-        choices=METODO_CHOICES,
-        default='biometria'
+        choices=METODO_CHOICES
     )
 
     data_hora = models.DateTimeField(auto_now_add=True)

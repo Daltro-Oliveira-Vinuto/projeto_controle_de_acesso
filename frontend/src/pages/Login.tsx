@@ -18,8 +18,32 @@ export default function Login() {
         setLoading(true);
         try {
             const res = await api.post('/auth/login/', { email, password });
+            //login(res.data.user, res.data.access, res.data.refresh);
+            //navigate('/dashboard');
+
             login(res.data.user, res.data.access, res.data.refresh);
-            navigate('/dashboard');
+
+            const papel = res.data.user.papel;
+
+            if (papel === 'operador') {
+                navigate('/operador');
+            }
+            else if (papel === 'admin') {
+                navigate('/admin');
+            }
+            else if (papel === 'gestor') {
+                navigate('/dashboard');
+            }
+            else if (papel === 'empresa') {
+                navigate('/dashboard');
+            }
+            else if (papel === 'fiscal') {
+                navigate('/dashboard');
+            }
+            else {
+                navigate('/dashboard');
+            }
+
         } catch (err: any) {
             const data = err.response?.data;
 

@@ -158,7 +158,7 @@ class VerificarDigitalView(APIView):
                 digital.codigo_hex.upper().strip()
             )
 
-            if banco_convertido == codigo_convertido:
+            if banco_convertido == codigo_convertido: # HEX do frontend == algum HEX do backend
                 digital_encontrada = digital
                 break
 

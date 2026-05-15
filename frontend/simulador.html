@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Leitor de Código de Barras - Tela do Operador</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary: #2b6cb0;
+            --primary-hover: #2c5282;
+            --success: #319795;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Painel de Controle (Gerador) */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .instruction {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn:disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            background: #edf2f7;
+            color: var(--text-muted);
+        }
+
+        .status-badge.typing {
+            background: #feebc8;
+            color: #c05621;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Tela do Operador (Frontend) */
+        .operator-screen {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-barcode {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.2rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s ease;
+            letter-spacing: 1px;
+        }
+
+        .input-barcode:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        /* Log de Leituras bem estilo PDV */
+        .log-container {
+            flex-grow: 1;
+            background: #1a202c;
+            color: #48bb78;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 180px;
+            max-height: 220px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #2d3748;
+            padding-bottom: 4px;
+        }
+
+        .log-entry span {
+            color: #a0aec0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="card control-panel">
+            <div>
+                <h2>⚙️ Hardware Simulador</h2>
+                <p class="instruction">
+                    Este painel simula o comportamento físico de um leitor de código de barras USB.
+                    Clique no botão para gerar um Hex aleatório e "digitá-lo" no campo focado.
+                </p>
+
+                <button class="btn" id="btnSimulate" onclick="triggerSimulation()">
+                    ⚡ Disparar Gatilho (Scan)
+                </button>
+            </div>
+
+            <div>
+                <span class="status-badge" id="statusSim">Status: Aguardando Gatilho</span>
+            </div>
+        </div>
+
+        <div class="card operator-screen">
+            <h2>🛒 Tela do Operador (PDV)</h2>
+
+            <div class="form-group">
+                <label for="barcodeInput">Aguardando Leitura do Código</label>
+                <input type="text" id="barcodeInput" class="input-barcode"
+                    placeholder="Clique aqui e use o simulador..." autocomplete="off" autofocus>
+            </div>
+
+            <label>Últimas Leituras Processadas (Submit)</label>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry" style="color: #718096;">[Sistema pronto. Aguardando dados...]</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const barcodeInput = document.getElementById('barcodeInput');
+        const btnSimulate = document.getElementById('btnSimulate');
+        const statusSim = document.getElementById('statusSim');
+        const logContainer = document.getElementById('logContainer');
+
+        // --- 1. LÓGICA DO SEU FRONTEND (TELA DO OPERADOR) ---
+        // Captura o evento de "Enter" que o leitor envia ao terminar de digitar
+        barcodeInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Evita recarregar a página caso fosse um form
+
+                const codeRead = this.value.trim();
+                if (codeRead) {
+                    processBarcode(codeRead);
+                    this.value = ''; // Limpa o campo para a próxima leitura, igual a um PDV real
+                }
+            }
+        });
+
+        function processBarcode(code) {
+            const timestamp = new Date().toLocaleTimeString();
+
+            // Remove a mensagem inicial se existir
+            if (logContainer.innerHTML.includes('[Sistema pronto.')) {
+                logContainer.innerHTML = '';
+            }
+
+            // Adiciona a leitura no log do terminal
+            const newLog = document.createElement('div');
+            newLog.className = 'log-entry';
+            newLog.innerHTML = `<span>[${timestamp}]</span> DETECTADO: <strong>${code}</strong>`;
+
+            logContainer.appendChild(newLog);
+            logContainer.scrollTop = logContainer.scrollHeight; // Auto-scroll para o final
+        }
+
+
+        // --- 2. LÓGICA DO SIMULADOR (HARDWARE) ---
+        // Gera uma string hexadecimal aleatória (Simulando um UUID ou ID de tag/produto)
+        function generateRandomHex(length = 8) {
+            const characters = '0123456789ABCDEF';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return result;
+        }
+
+        // Função principal que simula a digitação humana/hardware do leitor
+        async function triggerSimulation() {
+            // Verifica se o input está focado para conseguir simular a entrada
+            if (document.activeElement !== barcodeInput) {
+                // Força o foco no input caso o operador tenha clicado fora
+                barcodeInput.focus();
+            }
+
+            const hexCode = generateRandomHex(10); // Gera um HEX de 10 dígitos
+
+            // Bloqueia interface do simulador durante o envio
+            btnSimulate.disabled = true;
+            statusSim.textContent = "Status: Enviando dados...";
+            statusSim.className = "status-badge typing";
+
+            // Simula a digitação caractere por caractere
+            for (let i = 0; i < hexCode.length; i++) {
+                await delay(35); // Atraso de 35ms entre teclas (comportamento típico de emulação de teclado USB)
+
+                // Insere o caractere na posição atual do cursor do input focado
+                const start = barcodeInput.selectionStart;
+                const end = barcodeInput.selectionEnd;
+                const text = barcodeInput.value;
+                barcodeInput.value = text.substring(0, start) + hexCode[i] + text.substring(end);
+                barcodeInput.selectionStart = barcodeInput.selectionEnd = start + 1;
+
+                // Dispara o evento de 'input' para que frameworks (se usar no futuro) detectem a mudança
+                barcodeInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+
+            // Delay final antes do ENTER
+            await delay(20);
+
+            // Simula o disparo físico da tecla Enter
+            const enterEvent = new KeyboardEvent('keydown', {
+                key: 'Enter',
+                code: 'Enter',
+                keyCode: 13,
+                which: 13,
+                bubbles: true,
+                cancelable: true
+            });
+            barcodeInput.dispatchEvent(enterEvent);
+
+            // Restaura o estado dos botões de simulação
+            btnSimulate.disabled = false;
+            statusSim.textContent = "Status: Aguardando Gatilho";
+            statusSim.className = "status-badge";
+        }
+
+        // Função auxiliar para criar pausas assíncronas
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+
+</html>

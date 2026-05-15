@@ -854,7 +854,7 @@ export default function Estudantes() {
                 <select value={filtroCurso} onChange={e => setFiltroCurso(e.target.value)} style={cs.selectFiltro}>
                     <option value="">Todos os cursos</option>
                     {cursos.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>modalDigitais
+                </select>
                 <select value={filtroTurma} onChange={e => setFiltroTurma(e.target.value)} style={cs.selectFiltro}>
                     <option value="">Todas as turmas</option>
                     {turmas.map(t => <option key={t} value={t}>{t}</option>)}
