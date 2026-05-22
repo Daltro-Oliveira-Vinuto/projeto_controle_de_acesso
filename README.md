@@ -99,8 +99,8 @@ PORT= porta do banco de dados
 | 5 | Integração com leitor biométrico | DONE |
 | 6 | Regras de voucher e validação completa | DONE |
 | 7 | Liberação manual com foto e motivo | DONE |
-| 8 | Dashboard em tempo real para empresa | 🔧 Working on it |
-| 9 | Dashboards para fiscal e gestão | ⏳ Aguardando |
+| 8 | Dashboard em tempo real para empresa | DONE |
+| 9 | Dashboards para fiscal e gestão | 🔧 Working on it |
 | 10 | Relatórios e exportação | ⏳ Aguardando |
 | 11 | Validação fiscal, ocorrências e configurações | ⏳ Aguardando |
 | 12 | Testes, documentação e deploy | ⏳ Aguardando |
