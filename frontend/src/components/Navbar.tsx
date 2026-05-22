@@ -5,29 +5,30 @@ import { useAuth } from '../context/AuthContext';
 // Define quais rotas cada papel pode ver
 const MENU_BY_ROLE: Record<string, { label: string; path: string }[]> = {
     operador: [
-        { label: 'Dashboard', path: '/dashboard' },
+        //{ label: 'Dashboard', path: '/dashboard' },
         { label: 'Perfil', path: '/perfil' },
     ],
+
     empresa: [
         { label: 'Dashboard', path: '/dashboard' },
         { label: 'Relatórios', path: '/relatorios' },
         { label: 'Perfil', path: '/perfil' },
     ],
+
     fiscal: [
-        { label: 'Dashboard', path: '/dashboard' },
-        { label: 'Relatórios', path: '/relatorios' },
+        // { label: 'Dashboard', path: '/dashboard' },
         { label: 'Perfil', path: '/perfil' },
     ],
+
     gestor: [
-        { label: 'Dashboard', path: '/dashboard' },
-        { label: 'Relatórios', path: '/relatorios' },
+        //{ label: 'Dashboard', path: '/dashboard' },
         { label: 'Perfil', path: '/perfil' },
         { label: 'Estudantes', path: '/estudantes' },
     ],
+
     admin: [
-        { label: 'Dashboard', path: '/dashboard' },
+        // { label: 'Dashboard', path: '/dashboard' },
         { label: 'Painel Admin', path: '/admin' },
-        { label: 'Relatórios', path: '/relatorios' },
         { label: 'Perfil', path: '/perfil' },
         { label: 'Estudantes', path: '/estudantes' },
     ],

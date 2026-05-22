@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'meals',
     'reports',
     'students',
+    'channels',
+    'dashboard',
+
 ]
 
 # ── Middleware ────────────────────────────────────────────────────
@@ -72,6 +75,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
 # ── Banco de dados ────────────────────────────────────────────────
 # Lê as variáveis do .env — só um bloco DATABASES, sem duplicatas
@@ -159,3 +163,13 @@ GOOGLE_ALLOWED_DOMAINS = ['gmail.com', 'escola.gov.br', 'educacao.gov.br']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}

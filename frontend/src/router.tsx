@@ -10,6 +10,7 @@ import AuthCallback from './pages/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
 import Estudantes from './pages/Estudantes';
 import Operador from './pages/Operador';
+import DashboardEmpresa from './pages/DashboardEmpresa';
 
 const router = createBrowserRouter([
     {
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
             { path: 'auth/callback', element: <AuthCallback /> },
 
             // Protegidas — qualquer usuário autenticado
+            /*
             {
                 path: 'dashboard',
                 element: (
@@ -31,6 +33,8 @@ const router = createBrowserRouter([
                     </ProtectedRoute>
                 ),
             },
+            */
+
             {
                 path: 'perfil',
                 element: (
@@ -76,6 +80,16 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={['operador']}>
                         <Operador />
+                    </ProtectedRoute>
+                ),
+            },
+
+            // Dashboard empresa (Sprint 8) — visível para empresa, admin, gestor, fiscal
+            {
+                path: 'dashboard',
+                element: (
+                    <ProtectedRoute allowedRoles={['empresa']}>
+                        <DashboardEmpresa />
                     </ProtectedRoute>
                 ),
             },

@@ -29,19 +29,19 @@ export default function Login() {
                 navigate('/operador');
             }
             else if (papel === 'admin') {
-                navigate('/admin');
+                navigate('/perfil');
             }
             else if (papel === 'gestor') {
-                navigate('/dashboard');
+                navigate('/perfil');
             }
             else if (papel === 'empresa') {
                 navigate('/dashboard');
             }
             else if (papel === 'fiscal') {
-                navigate('/dashboard');
+                navigate('/perfil');
             }
             else {
-                navigate('/dashboard');
+                navigate('/perfil');
             }
 
         } catch (err: any) {

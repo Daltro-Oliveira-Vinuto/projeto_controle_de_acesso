@@ -26,7 +26,7 @@ export default function AuthCallback() {
         api.get('/auth/me/')
             .then(res => {
                 login(res.data, access, refresh);
-                navigate('/dashboard');
+                navigate('/perfil');
             })
             .catch(() => {
                 navigate('/login');

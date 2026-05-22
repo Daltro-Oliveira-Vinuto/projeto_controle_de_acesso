@@ -36,6 +36,8 @@ urlpatterns = [
 
     path('api/', include('meals.urls')),
     
+    # Dashboard em tempo real (Sprint 8)
+    path('api/', include('dashboard.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
