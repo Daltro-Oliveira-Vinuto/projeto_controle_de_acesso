@@ -11,6 +11,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Estudantes from './pages/Estudantes';
 import Operador from './pages/Operador';
 import DashboardEmpresa from './pages/DashboardEmpresa';
+import DashboardFiscal from './pages/DashboardFiscal';
+import DashboardGestao from './pages/DashboardGestao';
 
 const router = createBrowserRouter([
     {
@@ -84,12 +86,52 @@ const router = createBrowserRouter([
                 ),
             },
 
-            // Dashboard empresa (Sprint 8) — visível para empresa, admin, gestor, fiscal
             {
                 path: 'dashboard',
                 element: (
-                    <ProtectedRoute allowedRoles={['empresa']}>
+                    <ProtectedRoute
+                        allowedRoles={[
+                            'empresa',
+                            'admin',
+                        ]}
+                    >
                         <DashboardEmpresa />
+                    </ProtectedRoute>
+                ),
+            },
+
+            //
+            // Dashboard Fiscal (Sprint 9)
+            //
+
+            {
+                path: 'dashboard/fiscal',
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={[
+                            'fiscal',
+                            'admin',
+                        ]}
+                    >
+                        <DashboardFiscal />
+                    </ProtectedRoute>
+                ),
+            },
+
+            //
+            // Dashboard Gestão (Sprint 9)
+            //
+
+            {
+                path: 'dashboard/gestao',
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={[
+                            'gestor',
+                            'admin',
+                        ]}
+                    >
+                        <DashboardGestao />
                     </ProtectedRoute>
                 ),
             },

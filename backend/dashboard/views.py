@@ -2,6 +2,7 @@
 dashboard/views.py — Sprint 8
 Rotas de estatísticas para o dashboard da empresa.
 """
+
 from django.utils import timezone
 from django.db.models import Count
 from django.db.models.functions import TruncHour
@@ -11,6 +12,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from meals.models import Almoco
+
+from django.db.models import Q
+from django.db.models.functions import TruncDate, TruncMonth
+
+from students.models import Estudante
+from accounts.permissions import IsFiscal, IsAdminOrGestor
 
 PAPEIS_DASHBOARD = {'empresa', 'admin', 'gestor', 'fiscal'}
 
@@ -159,3 +166,132 @@ class DashboardMensalView(APIView):
             'metodos':   _biometria_vs_manual(qs_mes),
             'por_dia':   por_dia,
         })
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# Sprint 9 — Dashboard Fiscal
+# ───────────────────────────────────────────────────────────────────────────
+
+class DashboardFiscalView(APIView):
+    """
+    GET /api/dashboard/fiscal
+    """
+
+    permission_classes = [IsAuthenticated, IsFiscal]
+
+    def get(self, request):
+
+        hoje = timezone.localdate()
+
+        inicio_semana = hoje - timezone.timedelta(days=hoje.weekday())
+        inicio_mes = hoje.replace(day=1)
+
+        qs = Almoco.objects.all()
+
+        cards = {
+            'dia': qs.filter(data_hora__date=hoje).count(),
+            'semana': qs.filter(data_hora__date__gte=inicio_semana).count(),
+            'mes': qs.filter(data_hora__date__gte=inicio_mes).count(),
+        }
+
+        evolucao = (
+            qs
+            .annotate(data=TruncDate('data_hora'))
+            .values('data')
+            .annotate(total=Count('id'))
+            .order_by('data')
+        )
+
+        resumo = (
+            qs
+            .annotate(data=TruncDate('data_hora'))
+            .values('data')
+            .annotate(
+                total=Count('id'),
+                biometria=Count(
+                    'id',
+                    filter=Q(metodo='biometria')
+                ),
+                manual=Count(
+                    'id',
+                    filter=Q(metodo='manual')
+                ),
+            )
+            .order_by('-data')
+        )
+
+        return Response({
+            'cards': cards,
+            'evolucao_diaria': list(evolucao),
+            'resumo_diario': list(resumo),
+        })
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# Sprint 9 — Dashboard Gestão
+# ───────────────────────────────────────────────────────────────────────────
+
+class DashboardGestaoView(APIView):
+    """
+    GET /api/dashboard/gestao
+    """
+
+    permission_classes = [IsAuthenticated, IsAdminOrGestor]
+
+    def get(self, request):
+
+        turmas = []
+
+        agrupado = (
+            Estudante.objects
+            .values('curso', 'turma')
+            .annotate(total_alunos=Count('id'))
+            .order_by('curso', 'turma')
+        )
+
+        for item in agrupado:
+
+            alunos_ids = Estudante.objects.filter(
+                curso=item['curso'],
+                turma=item['turma']
+            ).values_list('id', flat=True)
+
+            compareceram = (
+                Almoco.objects
+                .filter(estudante_id__in=alunos_ids)
+                .values('estudante')
+                .distinct()
+                .count()
+            )
+
+            percentual = 0
+
+            if item['total_alunos'] > 0:
+                percentual = round(
+                    (compareceram / item['total_alunos']) * 100,
+                    1
+                )
+
+            turmas.append({
+                'curso': item['curso'],
+                'turma': item['turma'],
+                'total_alunos': item['total_alunos'],
+                'compareceram': compareceram,
+                'percentual_comparecimento': percentual,
+            })
+
+        tendencia = (
+            Almoco.objects
+            .annotate(mes=TruncMonth('data_hora'))
+            .values('mes')
+            .annotate(total=Count('id'))
+            .order_by('mes')
+        )
+
+        return Response({
+            'turmas': turmas,
+            'tendencia_mensal': list(tendencia),
+        })
+
+
+    

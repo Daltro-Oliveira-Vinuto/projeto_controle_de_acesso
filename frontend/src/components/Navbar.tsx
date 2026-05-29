@@ -2,10 +2,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Define quais rotas cada papel pode ver
 const MENU_BY_ROLE: Record<string, { label: string; path: string }[]> = {
     operador: [
-        //{ label: 'Dashboard', path: '/dashboard' },
         { label: 'Perfil', path: '/perfil' },
     ],
 
@@ -16,23 +14,32 @@ const MENU_BY_ROLE: Record<string, { label: string; path: string }[]> = {
     ],
 
     fiscal: [
-        // { label: 'Dashboard', path: '/dashboard' },
+        { label: 'Dashboard Fiscal', path: '/dashboard/fiscal' },
+        { label: 'Relatórios', path: '/relatorios' },
         { label: 'Perfil', path: '/perfil' },
     ],
 
     gestor: [
-        //{ label: 'Dashboard', path: '/dashboard' },
+        { label: 'Dashboard Gestão', path: '/dashboard/gestao' },
         { label: 'Perfil', path: '/perfil' },
         { label: 'Estudantes', path: '/estudantes' },
+        { label: 'Relatórios', path: '/relatorios' },
     ],
 
     admin: [
-        // { label: 'Dashboard', path: '/dashboard' },
         { label: 'Painel Admin', path: '/admin' },
+
+        // admin pode visualizar tudo
+        { label: 'Dashboard Empresa', path: '/dashboard' },
+        { label: 'Dashboard Fiscal', path: '/dashboard/fiscal' },
+        { label: 'Dashboard Gestão', path: '/dashboard/gestao' },
+
         { label: 'Perfil', path: '/perfil' },
         { label: 'Estudantes', path: '/estudantes' },
+        { label: 'Relatórios', path: '/relatorios' },
     ],
 };
+
 
 export default function Navbar() {
     const { user, logout, isAuthenticated } = useAuth();

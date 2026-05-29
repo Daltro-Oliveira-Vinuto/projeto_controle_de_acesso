@@ -100,7 +100,7 @@ PORT= porta do banco de dados
 | 6 | Regras de voucher e validação completa | DONE |
 | 7 | Liberação manual com foto e motivo | DONE |
 | 8 | Dashboard em tempo real para empresa | DONE |
-| 9 | Dashboards para fiscal e gestão | 🔧 Working on it |
-| 10 | Relatórios e exportação | ⏳ Aguardando |
+| 9 | Dashboards para fiscal e gestão | DONE |
+| 10 | Relatórios e exportação | 🔧 Working on it |
 | 11 | Validação fiscal, ocorrências e configurações | ⏳ Aguardando |
 | 12 | Testes, documentação e deploy | ⏳ Aguardando |

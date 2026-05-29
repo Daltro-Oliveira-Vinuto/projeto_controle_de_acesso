@@ -18,8 +18,7 @@ export default function Login() {
         setLoading(true);
         try {
             const res = await api.post('/auth/login/', { email, password });
-            //login(res.data.user, res.data.access, res.data.refresh);
-            //navigate('/dashboard');
+
 
             login(res.data.user, res.data.access, res.data.refresh);
 
@@ -32,13 +31,13 @@ export default function Login() {
                 navigate('/perfil');
             }
             else if (papel === 'gestor') {
-                navigate('/perfil');
+                navigate('/dashboard/gestao');
             }
             else if (papel === 'empresa') {
                 navigate('/dashboard');
             }
             else if (papel === 'fiscal') {
-                navigate('/perfil');
+                navigate('/dashboard/fiscal');
             }
             else {
                 navigate('/perfil');
