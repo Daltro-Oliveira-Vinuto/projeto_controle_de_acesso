@@ -1,3 +1,5 @@
+#  backend/meals/models.py
+
 from django.db import models
 from students.models import Estudante
 from accounts.models import User

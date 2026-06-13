@@ -1,3 +1,5 @@
+# backend/dashboard/consumers.py
+
 """
 dashboard/consumers.py — Sprint 8
 Consumer WebSocket para atualizações em tempo real do dashboard.

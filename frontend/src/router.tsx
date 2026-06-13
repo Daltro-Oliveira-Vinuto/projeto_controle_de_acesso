@@ -1,4 +1,5 @@
-// src/router.tsx
+// frontend/src/router.tsx
+
 import { createBrowserRouter } from 'react-router-dom';
 import Root from './pages/Root';
 import Home from './pages/Home';
@@ -13,6 +14,7 @@ import Operador from './pages/Operador';
 import DashboardEmpresa from './pages/DashboardEmpresa';
 import DashboardFiscal from './pages/DashboardFiscal';
 import DashboardGestao from './pages/DashboardGestao';
+import Relatorios from './pages/Relatorios'; // Sprint 10
 
 const router = createBrowserRouter([
     {
@@ -24,18 +26,6 @@ const router = createBrowserRouter([
             { path: 'about', element: <About /> },
             { path: 'login', element: <Login /> },
             { path: 'auth/callback', element: <AuthCallback /> },
-
-            // Protegidas — qualquer usuário autenticado
-            /*
-            {
-                path: 'dashboard',
-                element: (
-                    <ProtectedRoute>
-                        <Home />
-                    </ProtectedRoute>
-                ),
-            },
-            */
 
             {
                 path: 'perfil',
@@ -56,12 +46,14 @@ const router = createBrowserRouter([
                 ),
             },
 
-            // Relatórios — admin, gestor, fiscal e empresa podem acessar
+            // ----------------------------------------------------------------
+            // Relatórios (Sprint 10) — admin, gestor, fiscal e empresa
+            // ----------------------------------------------------------------
             {
                 path: 'relatorios',
                 element: (
                     <ProtectedRoute allowedRoles={['admin', 'gestor', 'fiscal', 'empresa']}>
-                        <div>Relatórios</div>
+                        <Relatorios />
                     </ProtectedRoute>
                 ),
             },
@@ -89,48 +81,25 @@ const router = createBrowserRouter([
             {
                 path: 'dashboard',
                 element: (
-                    <ProtectedRoute
-                        allowedRoles={[
-                            'empresa',
-                            'admin',
-                        ]}
-                    >
+                    <ProtectedRoute allowedRoles={['empresa', 'admin']}>
                         <DashboardEmpresa />
                     </ProtectedRoute>
                 ),
             },
 
-            //
-            // Dashboard Fiscal (Sprint 9)
-            //
-
             {
                 path: 'dashboard/fiscal',
                 element: (
-                    <ProtectedRoute
-                        allowedRoles={[
-                            'fiscal',
-                            'admin',
-                        ]}
-                    >
+                    <ProtectedRoute allowedRoles={['fiscal', 'admin']}>
                         <DashboardFiscal />
                     </ProtectedRoute>
                 ),
             },
 
-            //
-            // Dashboard Gestão (Sprint 9)
-            //
-
             {
                 path: 'dashboard/gestao',
                 element: (
-                    <ProtectedRoute
-                        allowedRoles={[
-                            'gestor',
-                            'admin',
-                        ]}
-                    >
+                    <ProtectedRoute allowedRoles={['gestor', 'admin']}>
                         <DashboardGestao />
                     </ProtectedRoute>
                 ),

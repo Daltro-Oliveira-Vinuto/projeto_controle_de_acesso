@@ -1,3 +1,5 @@
+# backend/dashboard/jwt_middleware.py
+
 """
 from urllib.parse import parse_qs
 from channels.middleware import BaseMiddleware

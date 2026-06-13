@@ -1,3 +1,5 @@
+# backend/students/models.py
+
 from django.db import models
 
 class Estudante(models.Model):

@@ -1,5 +1,6 @@
-from rest_framework import serializers
+# backend/dashboard/serializers.py
 
+from rest_framework import serializers
 
 class ResumoDiarioSerializer(serializers.Serializer):
     data = serializers.DateField()
