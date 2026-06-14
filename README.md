@@ -102,5 +102,5 @@ PORT= porta do banco de dados
 | 8 | Dashboard em tempo real para empresa | DONE |
 | 9 | Dashboards para fiscal e gestão | DONE |
 | 10 | Relatórios e exportação |  DONE |
-| 11 | Validação fiscal, ocorrências e configurações | 🔧 Working on it |
-| 12 | Testes, documentação e deploy | ⏳ Aguardando |
+| 11 | Validação fiscal, ocorrências e configurações | DONE |
+| 12 | Testes, documentação e deploy | 🔧 Working on it |

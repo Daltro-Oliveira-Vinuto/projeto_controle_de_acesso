@@ -68,3 +68,21 @@ class IsAdminOrGestor(BasePermission):
             and request.user.is_authenticated
             and request.user.papel in ['admin', 'gestor']
         )
+
+class IsFiscalOrAdmin(BasePermission):
+
+    message = (
+        'Acesso restrito a fiscais e administradores.'
+    )
+
+    def has_permission(self, request, view):
+
+        return (
+            request.user
+            and request.user.is_authenticated
+            and request.user.papel in [
+                'fiscal',
+                'admin',
+                'gestor'
+            ]
+        )

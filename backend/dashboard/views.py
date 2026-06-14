@@ -1,3 +1,5 @@
+# backend/dashboard/views.py
+
 """
 dashboard/views.py — Sprint 8
 Rotas de estatísticas para o dashboard da empresa.
@@ -17,7 +19,11 @@ from django.db.models import Q
 from django.db.models.functions import TruncDate, TruncMonth
 
 from students.models import Estudante
-from accounts.permissions import IsFiscal, IsAdminOrGestor
+
+from accounts.permissions import (
+    IsFiscalOrAdmin,
+    IsAdminOrGestor
+)
 
 PAPEIS_DASHBOARD = {'empresa', 'admin', 'gestor', 'fiscal'}
 
@@ -177,7 +183,7 @@ class DashboardFiscalView(APIView):
     GET /api/dashboard/fiscal
     """
 
-    permission_classes = [IsAuthenticated, IsFiscal]
+    permission_classes = [IsAuthenticated, IsFiscalOrAdmin]
 
     def get(self, request):
 

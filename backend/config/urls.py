@@ -21,6 +21,10 @@ urlpatterns = [
 
     # Relatórios e Exportação (Sprint 10)
     path('api/', include('reports.urls')),
+
+    # Sprint 11
+    path('api/', include('ocorrencias.urls')),
+    path('api/', include('configuracoes.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

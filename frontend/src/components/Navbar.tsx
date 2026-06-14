@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 
 const MENU_BY_ROLE: Record<string, { label: string; path: string }[]> = {
     operador: [
+        { label: 'Operador', path: '/operador' },
+        { label: 'Ocorrências', path: '/ocorrencias' },
         { label: 'Perfil', path: '/perfil' },
     ],
 
@@ -15,28 +17,44 @@ const MENU_BY_ROLE: Record<string, { label: string; path: string }[]> = {
 
     fiscal: [
         { label: 'Dashboard Fiscal', path: '/dashboard/fiscal' },
+        { label: 'Validar Período', path: '/fiscal/validar' },
         { label: 'Relatórios', path: '/relatorios' },
         { label: 'Perfil', path: '/perfil' },
     ],
 
     gestor: [
         { label: 'Dashboard Gestão', path: '/dashboard/gestao' },
-        { label: 'Perfil', path: '/perfil' },
         { label: 'Estudantes', path: '/estudantes' },
         { label: 'Relatórios', path: '/relatorios' },
+        { label: 'Perfil', path: '/perfil' },
     ],
 
     admin: [
-        { label: 'Painel Admin', path: '/admin' },
+        //{ label: 'Painel Admin', path: '/admin' },
 
-        // admin pode visualizar tudo
         { label: 'Dashboard Empresa', path: '/dashboard' },
         { label: 'Dashboard Fiscal', path: '/dashboard/fiscal' },
         { label: 'Dashboard Gestão', path: '/dashboard/gestao' },
 
-        { label: 'Perfil', path: '/perfil' },
         { label: 'Estudantes', path: '/estudantes' },
+
         { label: 'Relatórios', path: '/relatorios' },
+
+        { label: 'Ocorrências', path: '/ocorrencias' },
+
+        { label: 'Validar Período', path: '/fiscal/validar' },
+
+        {
+            label: 'Períodos Validados',
+            path: '/admin/periodos-validados'
+        },
+
+        {
+            label: 'Configurações',
+            path: '/admin/configuracoes'
+        },
+
+        { label: 'Perfil', path: '/perfil' },
     ],
 };
 

@@ -34,10 +34,25 @@ from reportlab.platypus import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from accounts.permissions import IsAdminOrGestor  # reutiliza permissão existente
+from accounts.permissions import IsAdminOrGestor, IsFiscalOrAdmin  # reutiliza permissão existente
 from meals.models import Almoco
 from students.models import Estudante
 from accounts.models import User
+
+from decimal import Decimal
+
+from django.utils import timezone
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+from meals.models import Almoco
+
+from configuracoes.models import Configuracao
+
+from .models import PeriodoValidado
+
+from .serializers import PeriodoValidadoSerializer
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -486,3 +501,98 @@ class RelatorioPagamentoView(APIView):
             headers=headers,
             rows=rows,
         )
+
+class ValidarPeriodoView(APIView):
+
+    def post(self, request):
+
+        data_inicio = request.data.get('data_inicio')
+        data_fim = request.data.get('data_fim')
+
+        total = Almoco.objects.filter(
+            data_hora__date__range=[
+                data_inicio,
+                data_fim
+            ]
+        ).count()
+
+        valor_refeicao = Decimal(
+            Configuracao.objects.get(
+                chave='valor_refeicao'
+            ).valor
+        )
+
+        valor_total = total * valor_refeicao
+
+        ano_mes = timezone.now().strftime('%Y%m')
+
+        numero = (
+            PeriodoValidado.objects.count() + 1
+        )
+
+        protocolo = f'VAL-{ano_mes}-{numero:03d}'
+
+        periodo = PeriodoValidado.objects.create(
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+            total_refeicoes=total,
+            valor_por_refeicao=valor_refeicao,
+            valor_total=valor_total,
+            fiscal=request.user,
+            fiscal_email=request.user.email,
+            protocolo=protocolo
+        )
+
+        return Response({
+            'protocolo': protocolo,
+            'valor_total': valor_total
+        })
+
+        
+class PeriodosValidadosView(APIView):
+
+    def get(self, request):
+
+        periodos = (
+            PeriodoValidado.objects
+            .all()
+            .order_by('-data_validacao')
+        )
+
+        serializer = PeriodoValidadoSerializer(
+            periodos,
+            many=True
+        )
+
+        return Response(serializer.data)
+
+class SimularPeriodoView(APIView):
+
+    def post(self, request):
+
+        data_inicio = request.data.get('data_inicio')
+        data_fim = request.data.get('data_fim')
+
+        total = Almoco.objects.filter(
+            data_hora__date__range=[
+                data_inicio,
+                data_fim
+            ]
+        ).count()
+
+        valor_refeicao = Decimal(
+            Configuracao.objects.get(
+                chave='valor_refeicao'
+            ).valor
+        )
+
+        valor_total = total * valor_refeicao
+
+        return Response({
+            'data_inicio': data_inicio,
+            'data_fim': data_fim,
+            'total_refeicoes': total,
+            'valor_refeicao': valor_refeicao,
+            'valor_total': valor_total
+        })
+

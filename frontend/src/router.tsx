@@ -1,5 +1,7 @@
 // frontend/src/router.tsx
 
+console.log("ROUTER CARREGANDO");
+
 import { createBrowserRouter } from 'react-router-dom';
 import Root from './pages/Root';
 import Home from './pages/Home';
@@ -15,6 +17,14 @@ import DashboardEmpresa from './pages/DashboardEmpresa';
 import DashboardFiscal from './pages/DashboardFiscal';
 import DashboardGestao from './pages/DashboardGestao';
 import Relatorios from './pages/Relatorios'; // Sprint 10
+
+import Ocorrencias from './pages/Ocorrencias';
+import Configuracoes from './pages/Configuracoes';
+import ValidarPeriodo from './pages/ValidarPeriodo';
+import PeriodosValidados from './pages/PeriodosValidados';
+
+
+console.log("ROUTER CARREGADO");
 
 const router = createBrowserRouter([
     {
@@ -105,7 +115,60 @@ const router = createBrowserRouter([
                 ),
             },
 
+            {
+                path: 'ocorrencias',
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={[
+                            'operador',
+                            'admin'
+                        ]}
+                    >
+                        <Ocorrencias />
+                    </ProtectedRoute>
+                ),
+            },
+
+            {
+                path: 'fiscal/validar',
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={[
+                            'fiscal',
+                            'admin'
+                        ]}
+                    >
+                        <ValidarPeriodo />
+                    </ProtectedRoute>
+                ),
+            },
+
+            {
+                path: 'admin/periodos-validados',
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={['admin']}
+                    >
+                        <PeriodosValidados />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'admin/configuracoes',
+                element: (
+                    <ProtectedRoute
+                        allowedRoles={['admin']}
+                    >
+                        <Configuracoes />
+                    </ProtectedRoute>
+                ),
+            },
+
+
+
+
             { path: 'unauthorized', element: <div style={{ padding: 32 }}>Acesso não autorizado.</div> },
+
         ],
     },
 ]);

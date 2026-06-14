@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'students',
     'channels',
     'dashboard',
+    'ocorrencias',
+    'configuracoes',
 
 ]
 
