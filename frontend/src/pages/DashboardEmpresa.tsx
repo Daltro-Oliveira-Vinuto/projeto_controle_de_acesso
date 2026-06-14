@@ -93,50 +93,58 @@ export default function DashboardEmpresa() {
     // ── WebSocket ─────────────────────────────────────────────────────────
 
     useEffect(() => {
-        const connectWebSocket = () => {
-            const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token');
 
-            const protocol =
-                window.location.protocol === 'https:' ? 'wss' : 'ws';
+        if (!token) {
+            setWsStatus('desconectado');
+            return;
+        }
 
-            const API_HOST = 'localhost:8000';
+        const protocol =
+            window.location.protocol === 'https:' ? 'wss' : 'ws';
 
-            const wsUrl =
-                `${protocol}://${API_HOST}/ws/dashboard/empresa/?token=${token}`;
+        const ws = new WebSocket(
+            `${protocol}://localhost:8000/ws/dashboard/empresa/?token=${token}`
+        );
 
-            const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
 
-            wsRef.current = ws;
+        ws.onopen = () => {
+            console.log('WS OPEN');
+            setWsStatus('conectado');
+        };
 
-            ws.onopen = () => {
-                setWsStatus('conectado');
-            };
+        ws.onmessage = (event) => {
+            console.log('WS MESSAGE:', event.data);
 
-            ws.onclose = () => {
-                setWsStatus('desconectado');
-
-                setTimeout(() => {
-                    connectWebSocket();
-                }, 3000);
-            };
-
-            ws.onerror = () => {
-                ws.close();
-            };
-
-            ws.onmessage = (event) => {
+            try {
                 const msg = JSON.parse(event.data);
 
                 if (msg.tipo === 'nova-liberacao') {
                     fetchHoje();
                 }
-            };
+            } catch (err) {
+                console.error(err);
+            }
         };
 
-        connectWebSocket();
+        ws.onerror = (err) => {
+            console.error('WS ERROR', err);
+        };
+
+        ws.onclose = (event) => {
+            console.log(
+                'WS CLOSE',
+                event.code,
+                event.reason,
+                event.wasClean
+            );
+
+            setWsStatus('desconectado');
+        };
 
         return () => {
-            wsRef.current?.close();
+            ws.close();
         };
     }, [fetchHoje]);
 

@@ -11,14 +11,15 @@ Configura CHANNEL_LAYERS (ver instruções abaixo).
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-
+"""
 class DashboardConsumer(AsyncWebsocketConsumer):
-    """
-    ws://host/ws/dashboard/empresa/
+    
+    #ws://host/ws/dashboard/empresa/
 
-    Eventos enviados ao cliente:
-    - nova-liberacao: { tipo, id, estudante, matricula, metodo, data_hora, operador }
-    """
+    #Eventos enviados ao cliente:
+    #- nova-liberacao: { tipo, id, estudante, matricula, metodo, data_hora, operador }
+    
+
     GROUP_NAME = 'dashboard_empresa'
 
     async def connect(self):
@@ -44,7 +45,7 @@ class DashboardConsumer(AsyncWebsocketConsumer):
 
     # Handler chamado via channel_layer.group_send(...)
     async def nova_liberacao(self, event):
-        """Repassa o evento para o WebSocket do cliente."""
+        #Repassa o evento para o WebSocket do cliente.
         await self.send(text_data=json.dumps({
             'tipo':      'nova-liberacao',
             'id':        event['id'],
@@ -54,3 +55,84 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             'data_hora': event['data_hora'],
             'operador':  event.get('operador'),
         }))
+"""
+
+
+class DashboardConsumer(AsyncWebsocketConsumer):
+
+    GROUP_NAME = "dashboard_empresa"
+
+    async def connect(self):
+
+        print("CONNECT")
+
+        user = self.scope.get("user")
+
+        if not user or not user.is_authenticated:
+            print("NAO AUTENTICADO")
+            await self.close(code=4001)
+            return
+
+        print("ANTES GROUP_ADD")
+
+        await self.channel_layer.group_add(
+            self.GROUP_NAME,
+            self.channel_name
+        )
+
+        print("DEPOIS GROUP_ADD")
+
+        await self.accept()
+
+        print("ACEITO")
+
+    async def disconnect(self, close_code):
+
+        print("DISCONNECT", close_code)
+
+        try:
+            await self.channel_layer.group_discard(
+                self.GROUP_NAME,
+                self.channel_name
+            )
+
+            print("GROUP_DISCARD OK")
+
+        except Exception as e:
+            print("ERRO DISCARD:", e)
+
+    async def receive(self, text_data=None, bytes_data=None):
+        pass
+
+    """
+    async def nova_liberacao(self, event):
+
+        await self.send(
+            text_data=json.dumps({
+                "tipo": "nova-liberacao",
+                "id": event["id"],
+                "estudante": event["estudante"],
+                "matricula": event["matricula"],
+                "metodo": event["metodo"],
+                "data_hora": event["data_hora"],
+                "operador": event.get("operador"),
+            })
+        )
+    """
+    async def nova_liberacao(self, event):
+
+        print("EVENTO RECEBIDO NO CONSUMER")
+
+        await self.send(
+            text_data=json.dumps({
+                "tipo": "nova-liberacao",
+                "id": event["id"],
+                "estudante": event["estudante"],
+                "matricula": event["matricula"],
+                "metodo": event["metodo"],
+                "data_hora": event["data_hora"],
+                "operador": event.get("operador"),
+            })
+        )
+
+        print("EVENTO ENVIADO AO FRONT")

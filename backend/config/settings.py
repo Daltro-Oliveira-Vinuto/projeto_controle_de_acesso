@@ -1,23 +1,44 @@
 # config/settings.py
+
 from pathlib import Path
 from datetime import timedelta
 import environ
 import os
+import dj_database_url
 
-# ── Paths ────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ── Variáveis de ambiente (.env) ─────────────────────────────────
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / '.env')
 
-# ── Segurança ─────────────────────────────────────────────────────
-SECRET_KEY = 'django-insecure-_b_@khbq%e@fdw^9)_!*z@8c1twutwb^!*o3^7(#-zvv$0%pv@'
-DEBUG = env.bool('DEBUG')
-# ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-ALLOWED_HOSTS = ['*']
+# ==========================================================
+# SEGURANÇA
+# ==========================================================
 
-# ── Apps instalados ───────────────────────────────────────────────
+
+SECRET_KEY = env('SECRET_KEY')
+
+DEBUG = env.bool('DEBUG', default=False)
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    
+
+ALLOWED_HOSTS = env.list(
+    'ALLOWED_HOSTS',
+    default=['localhost', '127.0.0.1']
+)
+
+# ==========================================================
+# APPS
+# ==========================================================
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -26,13 +47,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Terceiros
+    # terceiros
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework_nested',
 
-    # Apps do projeto
+    # apps
     'accounts',
     'api',
     'biometrics',
@@ -44,13 +65,18 @@ INSTALLED_APPS = [
     'dashboard',
     'ocorrencias',
     'configuracoes',
-
 ]
 
-# ── Middleware ────────────────────────────────────────────────────
+# ==========================================================
+# MIDDLEWARE
+# ==========================================================
+
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # deve ser o primeiro
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,7 +85,18 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# ==========================================================
+# URLS / WSGI / ASGI
+# ==========================================================
+
 ROOT_URLCONF = 'config.urls'
+
+WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
+
+# ==========================================================
+# TEMPLATES
+# ==========================================================
 
 TEMPLATES = [
     {
@@ -76,26 +113,35 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
-ASGI_APPLICATION = 'config.asgi.application'
+# ==========================================================
+# DATABASE
+# ==========================================================
 
-# ── Banco de dados ────────────────────────────────────────────────
-# Lê as variáveis do .env — só um bloco DATABASES, sem duplicatas
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
-        'PASSWORD': env('DB_PASSWORD'),
-        'HOST': env('DB_HOST'),
-        'PORT': env('DB_PORT'),
+if env('DATABASE_URL', default=None):
+    DATABASES = {
+        'default': dj_database_url.parse(
+            env('DATABASE_URL'),
+            conn_max_age=600,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST'),
+            'PORT': env('DB_PORT'),
+        }
+    }
 
-# ── Model de usuário customizado ──────────────────────────────────
+# ==========================================================
+# AUTH
+# ==========================================================
+
 AUTH_USER_MODEL = 'accounts.User'
 
-# ── Validação de senhas ───────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -103,22 +149,58 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ── Internacionalização ───────────────────────────────────────────
+# ==========================================================
+# I18N
+# ==========================================================
+
 LANGUAGE_CODE = 'pt-br'
+
 TIME_ZONE = 'America/Sao_Paulo'
+
 USE_I18N = True
 USE_TZ = True
 
-# ── Arquivos estáticos ────────────────────────────────────────────
+# ==========================================================
+# STATIC / MEDIA
+# ==========================================================
+
 STATIC_URL = '/static/'
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ── CORS ──────────────────────────────────────────────────────────
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',  # Vite dev server
-]
+# ==========================================================
+# CORS / CSRF
+# ==========================================================
 
-# ── Django REST Framework ─────────────────────────────────────────
+CORS_ALLOWED_ORIGINS = env.list(
+    'CORS_ALLOWED_ORIGINS',
+    default=['http://localhost:5173']
+)
+
+CSRF_TRUSTED_ORIGINS = env.list(
+    'CSRF_TRUSTED_ORIGINS',
+    default=[]
+)
+
+# ==========================================================
+# DRF
+# ==========================================================
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -128,19 +210,20 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 
-    # PAGINAÇÃO
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
 
     'PAGE_SIZE': 10,
 
-    # ORDENAÇÃO
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework.filters.OrderingFilter',
     ],
 }
 
-# ── JWT (SimpleJWT) ───────────────────────────────────────────────
+# ==========================================================
+# JWT
+# ==========================================================
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -150,28 +233,56 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
 }
 
-# ── Google OAuth (preencha após criar as credenciais no Google Cloud) ──
-GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID', default='')
-GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET', default='')
-GOOGLE_REDIRECT_URI = 'http://localhost:8000/api/auth/google/callback/'
+# ==========================================================
+# GOOGLE OAUTH
+# ==========================================================
 
-#print(f"GOOGLE CLIENT ID: {GOOGLE_CLIENT_ID}")
-#print(f"GOOGLE CLIENT SECRET: {GOOGLE_CLIENT_SECRET}")
+GOOGLE_CLIENT_ID = env(
+    'GOOGLE_CLIENT_ID',
+    default=''
+)
 
-# Domínios de email permitidos para login com Google
-# Ajuste conforme os domínios reais da instituição
-GOOGLE_ALLOWED_DOMAINS = ['gmail.com', 'escola.gov.br', 'educacao.gov.br']
+GOOGLE_CLIENT_SECRET = env(
+    'GOOGLE_CLIENT_SECRET',
+    default=''
+)
 
+GOOGLE_REDIRECT_URI = env(
+    'GOOGLE_REDIRECT_URI',
+    default='http://localhost:8000/api/auth/google/callback/'
+)
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+GOOGLE_ALLOWED_DOMAINS = [
+    'gmail.com',
+    'escola.gov.br',
+    'educacao.gov.br',
+]
 
+# ==========================================================
+# REDIS / CHANNELS
+# ==========================================================
+
+REDIS_URL = env(
+    'REDIS_URL',
+    default='redis://127.0.0.1:6379'
+)
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],
+            'hosts': [REDIS_URL],
         },
     },
 }
+
+# ==========================================================
+# RENDER
+# ==========================================================
+
+SECURE_PROXY_SSL_HEADER = (
+    'HTTP_X_FORWARDED_PROTO',
+    'https'
+)
+
+USE_X_FORWARDED_HOST = True
