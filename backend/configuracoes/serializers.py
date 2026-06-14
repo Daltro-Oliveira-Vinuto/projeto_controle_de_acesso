@@ -1,7 +1,6 @@
 # backend/configuracoes/serializers.py
 
 from rest_framework import serializers
-
 from .models import Configuracao
 
 
