@@ -49,7 +49,8 @@ export default function Login() {
             // Se o backend sinalizou que este usuário deve usar Google,
             // redireciona automaticamente sem mostrar mensagem de erro feia
             if (data?.redirect_google) {
-                window.location.href = 'http://localhost:8000/api/auth/google/';
+                window.location.href =
+                    `${import.meta.env.VITE_BACKEND_URL}/api/auth/google/`;
                 return;
             }
 
@@ -62,7 +63,8 @@ export default function Login() {
     function handleGoogleLogin() {
         // Redireciona o browser diretamente — não usar axios/fetch aqui pois OAuth
         // exige redirecionamento real do browser (não XMLHttpRequest)
-        window.location.href = 'http://localhost:8000/api/auth/google/';
+        window.location.href =
+            `${import.meta.env.VITE_BACKEND_URL}/api/auth/google/`;
     }
 
     return (

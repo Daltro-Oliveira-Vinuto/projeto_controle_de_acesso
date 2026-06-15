@@ -2,7 +2,6 @@
 
 import axios from 'axios';
 
-// for a local deploy use: VITE_API_URL=http://localhost:8000/api/
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
 });
@@ -29,7 +28,11 @@ api.interceptors.response.use(
 
             if (refresh) {
                 try {
-                    const res = await axios.post('http://localhost:8000/api/auth/refresh/', { refresh });
+                    const res = await axios.post(
+                        `${import.meta.env.VITE_API_URL}/auth/refresh/`,
+                        { refresh }
+                    );
+
                     const newAccess = res.data.access;
                     localStorage.setItem('token', newAccess);
                     originalRequest.headers.Authorization = `Bearer ${newAccess}`;
