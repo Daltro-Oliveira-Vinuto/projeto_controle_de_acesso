@@ -71,7 +71,10 @@ poetry run python3 manage.py migrate
 poetry run python3 manage.py runserver
 ```
 
+Frontend disponível no endereço: https://projeto-controle-de-acesso.vercel.app
+Backend disponível no endereço: https://projeto-controle-de-acesso-98dc.onrender.com
 Disponível localmente em **http://localhost:8000**
+
 
 Crie um arquivo `.env` dentro de `backend/`:
 
