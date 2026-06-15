@@ -34,8 +34,8 @@ O objetivo central deste sistema é gerenciar o controle de acesso e a validaç�
 
 | Serviço | URL |
 |---|---|
-| Frontend (Render) | `em breve` |
-| Backend (Render) | `em breve` |
+| Frontend (Vercel) | https://projeto-controle-de-acesso.vercel.app/ |
+| Backend (Render) | https://projeto-controle-de-acesso-98dc.onrender.com |
 
 ---
 
@@ -69,10 +69,7 @@ pip install poetry   # caso ainda não tenha
 poetry install
 poetry run python3 manage.py migrate
 poetry run python3 manage.py runserver
-```
 
-Frontend disponível no endereço: https://projeto-controle-de-acesso.vercel.app
-Backend disponível no endereço: https://projeto-controle-de-acesso-98dc.onrender.com
 Disponível localmente em **http://localhost:8000**
 
 
