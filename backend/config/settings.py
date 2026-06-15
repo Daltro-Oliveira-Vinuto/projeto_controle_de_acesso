@@ -286,3 +286,9 @@ SECURE_PROXY_SSL_HEADER = (
 )
 
 USE_X_FORWARDED_HOST = True
+
+
+FRONTEND_URL = env(
+    'FRONTEND_URL',
+    default='http://localhost:5173'
+)

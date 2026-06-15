@@ -276,7 +276,7 @@ def google_callback(request):
     # 8. Gera os tokens JWT e redireciona para o frontend
     tokens = get_tokens_for_user(user)
     frontend_url = (
-        f'http://localhost:5173/auth/callback'
+        f'{settings.FRONTEND_URL}/auth/callback'
         f'?access={tokens["access"]}'
         f'&refresh={tokens["refresh"]}'
     )
