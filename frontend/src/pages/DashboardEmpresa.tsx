@@ -104,8 +104,10 @@ export default function DashboardEmpresa() {
             window.location.protocol === 'https:' ? 'wss' : 'ws';
 
         const ws = new WebSocket(
-            `${protocol}://localhost:8000/ws/dashboard/empresa/?token=${token}`
+            `${protocol}://${import.meta.env.VITE_BACKEND_DOMAIN}/ws/dashboard/empresa/?token=${token}`
         );
+
+
 
         wsRef.current = ws;
 
