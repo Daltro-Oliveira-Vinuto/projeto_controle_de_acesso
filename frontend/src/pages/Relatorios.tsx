@@ -419,8 +419,14 @@ function AbaEstudante() {
 }
 
 function AbaPeriodo({
-    nomeAba, rotaBase, nomeArquivo, titulo
-}: { nomeAba: string; rotaBase: string; nomeArquivo: string; titulo: string }) {
+    rotaBase,
+    nomeArquivo,
+}: {
+    rotaBase: string;
+    nomeArquivo: string;
+}) {
+
+
     const [inicio, setInicio] = useState(umMesAtras());
     const [fim, setFim] = useState(hoje());
 
@@ -506,26 +512,20 @@ export default function Relatorios() {
                 {aba === 'estudante' && <AbaEstudante />}
                 {aba === 'operador' && (
                     <AbaPeriodo
-                        nomeAba="operador"
-                        rotaBase="/relatorios/operador"
-                        nomeArquivo="relatorio_operador"
-                        titulo="Relatório por Operador"
+                        rotaBase="..."
+                        nomeArquivo="..."
                     />
                 )}
                 {aba === 'excecoes' && (
                     <AbaPeriodo
-                        nomeAba="excecoes"
-                        rotaBase="/relatorios/excecoes"
-                        nomeArquivo="relatorio_excecoes"
-                        titulo="Relatório de Exceções"
+                        rotaBase="..."
+                        nomeArquivo="..."
                     />
                 )}
                 {aba === 'pagamento' && (
                     <AbaPeriodo
-                        nomeAba="pagamento"
-                        rotaBase="/relatorios/pagamento"
-                        nomeArquivo="relatorio_pagamento"
-                        titulo="Relatório de Pagamento"
+                        rotaBase="..."
+                        nomeArquivo="..."
                     />
                 )}
             </div>

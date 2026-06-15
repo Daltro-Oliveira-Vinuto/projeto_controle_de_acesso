@@ -4,12 +4,15 @@ import api from '../services/api'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom';
 
-const getFotoUrl = (url: string | null) => {
-    if (!url) return null;
+const getFotoUrl = (
+    url: string | null
+): string | undefined => {
+
+    if (!url) return undefined;
 
     if (url.startsWith('http')) return url;
 
-    return `http://localhost:8000${url}`;
+    return `${import.meta.env.VITE_API_URL}${url}`;
 };
 
 type Estudante = {
@@ -193,13 +196,17 @@ export default function Operador() {
 
             // 🔴 CASO: já almoçou hoje
             if (status === 'ja_almocou_hoje') {
+
+                setMostrarBusca(false)
+                setEstudanteManual(null)
+                setBusca('')
+                setResultadosBusca([])
+                setObservacao('')
+
                 setStatus('erro')
                 setMensagem('ALUNO JÁ ALMOÇOU HOJE')
 
-                resetTela()
 
-                setStatus('erro')
-                setMensagem('ALUNO JÁ ALMOÇOU HOJE')
                 setTimeout(() => {
                     setStatus('idle')
                     setMensagem('Aproxime o dedo no leitor')
@@ -330,7 +337,7 @@ export default function Operador() {
                     {estudante.foto_url ? (
 
                         <img
-                            src={getFotoUrl(estudante.foto_url)}
+                            src={getFotoUrl(estudante.foto_url) ?? undefined}
                             alt={estudante.nome}
                             className="
                                 w-48
@@ -547,7 +554,7 @@ export default function Operador() {
                                         {aluno.foto_url ? (
 
                                             <img
-                                                src={getFotoUrl(aluno.foto_url)}
+                                                src={getFotoUrl(aluno.foto_url) ?? undefined}
                                                 className="
                                         w-16
                                         h-16
@@ -683,7 +690,7 @@ export default function Operador() {
                         {estudanteManual.foto_url ? (
 
                             <img
-                                src={getFotoUrl(estudanteManual.foto_url)}
+                                src={getFotoUrl(estudanteManual.foto_url) ?? undefined}
                                 className="
                             w-40
                             h-40

@@ -73,8 +73,10 @@ export function useAuth() {
 */
 
 // src/context/AuthContext.tsx
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+
 
 interface User {
     id: number;
